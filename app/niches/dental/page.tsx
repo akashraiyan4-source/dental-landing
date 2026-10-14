@@ -312,15 +312,13 @@ export default function DentalPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          name: drawerName, 
-          phone: drawerPhone, 
-          sourceNiche: 'dental', 
-          landingPageId: 'dental-miami-01',
-          appointmentDate: new Date(Date.now() + 86400000).toISOString(),
-          triggers: ['leads', 'booking', 'whatsapp-integration', 'follow-up', 'lead-scoring', 'analytics']
+          fullName: drawerName.trim(), 
+          phone: drawerPhone.trim(), 
+          treatment: drawerTreatment,
+          niche: 'dental'
         })
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
       if (response.ok) {
         alert('Success! Priority appointment slot reserved and universal automations triggered.');
         closeHeroDrawer();
@@ -345,7 +343,7 @@ export default function DentalPage() {
         cosmetic: 'Micro-Enamel Bio-Seal',
         roofing: 'Full Arch Smile Alignment',
       };
-      const response = await fetch(`${API_BASE}/api/booking`, {
+      const response = await fetch(`${API_BASE}/api/booking/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -428,15 +426,14 @@ export default function DentalPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          name: 'Concierge Web Guest', 
+          fullName: 'Concierge Web Guest', 
           phone: '+15552347890', 
-          sourceNiche: 'dental', 
-          landingPageId: 'dental-miami-01',
           appointmentDate: chatSlot,
-          triggers: ['leads', 'booking', 'whatsapp-integration', 'follow-up']
+          treatment: 'Handcrafted Porcelain Veneers',
+          niche: 'dental'
         })
       });
-      const resData = await response.json();
+      const resData = await response.json().catch(() => ({}));
       if (response.ok) {
         setChatSlotStatus({ text: '✓ VIP Slot Confirmed!', color: '#34c759' });
       } else {
@@ -1147,6 +1144,14 @@ export default function DentalPage() {
         </a>
       </header>
 
+      <header>
+        <div className="brand-title">SmileWay<span>Studio</span></div>
+        <a href="tel:5552347890" className="phone-badge">
+          <span className="status-dot-green"></span>
+          <span>(555) 234-7890</span>
+        </a>
+      </header>
+
       <div className="rating-strip">
         <span className="g-icon">G</span>
         <span className="stars">★★★★★</span>
@@ -1221,7 +1226,7 @@ export default function DentalPage() {
               <h3 className="drawer-title">Claim Your Confidence</h3>
               <p className="drawer-sub">Direct senior cosmetic triage confirmed via backend.</p>
             </div>
-            <input type="text" value={drawerName} onChange={e => setDrawerName(e.target.value)} className="drawer-input" placeholder="Your Full Name" />
+            <input type="post" value={drawerName} onChange={e => setDrawerName(e.target.value)} className="drawer-input" placeholder="Your Full Name" />
             <input type="tel" value={drawerPhone} onChange={e => setDrawerPhone(e.target.value)} className="drawer-input" placeholder="Direct Phone (SMS Enabled)" />
             <select value={drawerTreatment} onChange={e => setDrawerTreatment(e.target.value)} className="drawer-input">
               <option value="Handcrafted Porcelain Veneers">Handcrafted Porcelain Veneers</option>
