@@ -775,43 +775,350 @@ export default function DentalPage() {
 
         footer { padding: 24px 28px 36px 28px; text-align: center; font-size: 0.84rem; color: var(--apple-gray); border-top: 1px solid var(--apple-border); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); margin-top: 0 !important; }
         
+        /* =====================================================================
+           MOBILE  (<= 768px)  —  native iOS app aesthetic
+           Edge-to-edge cards · strict centering · frosted glass · Apple shadows
+           ===================================================================== */
         @media (max-width: 768px) {
-          header { padding: 16px 20px; justify-content: center !important; }
-          .brand-title { font-size: 1.25rem; text-align: center; }
+          :root {
+            --ios-glass: rgba(255, 255, 255, 0.72);
+            --ios-glass-strong: rgba(255, 255, 255, 0.88);
+            --ios-hairline: rgba(60, 60, 67, 0.14);
+            --ios-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(20, 19, 22, 0.07);
+            --ios-shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.05), 0 14px 36px rgba(20, 19, 22, 0.10);
+            --ios-safe-top: env(safe-area-inset-top, 0px);
+            --ios-safe-bottom: env(safe-area-inset-bottom, 0px);
+          }
+
+          html, body { -webkit-text-size-adjust: 100%; overscroll-behavior-y: none; }
+
+          /* ---------- Nav bar / top strips : translucent iOS bars ---------- */
+          header {
+            padding: calc(12px + var(--ios-safe-top)) 20px 12px 20px;
+            justify-content: center !important;
+            background: rgba(247, 244, 239, 0.72);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 0.5px solid var(--ios-hairline);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+          }
+          .brand-title { font-size: 1.2rem; text-align: center; }
           .phone-badge { display: none; }
-          .rating-strip { font-size: 0.8rem; padding: 12px 16px; text-align: center; }
-          .hero-split-grid { grid-template-columns: minmax(0, 1fr); padding: 0 20px 40px 20px !important; gap: 24px; text-align: center; justify-items: center; }
-          .hero-text-col { align-items: center; text-align: center; gap: 16px; width: 100%; min-width: 0; }
-          .hero-sub-copy { max-width: 100%; text-align: center; }
-          .hero-pill-cluster { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; justify-content: flex-start; gap: 10px; padding: 6px 16px 10px 16px; width: 100%; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
-          .hero-pill-cluster .h-pill { white-space: nowrap; flex-shrink: 0; scroll-snap-align: start; }
-          .hero-box { order: -1; width: 100vw !important; max-width: 100vw !important; height: 75vh !important; aspect-ratio: auto !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; border-left: none; border-right: none; overflow: hidden; }
-          .hero-main-title { font-size: 2.5rem !important; line-height: 1.12 !important; text-align: center; }
-          .extra-features-grid { grid-template-columns: 1fr; }
-          .stats-row { grid-template-columns: 1fr; }
-          .content-container { padding: 0 16px; }
 
-          /* Mobile centering: headings, tags and text blocks (px-4 comes from .content-container above) */
+          .rating-strip,
+          .press-trust-bar,
+          .celebrity-ticker-bar {
+            background: var(--ios-glass);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 0.5px solid var(--ios-hairline);
+          }
+          .rating-strip { font-size: 0.8rem; padding: 12px 16px; text-align: center; flex-wrap: wrap; }
+
+          /* ---------- Hero : strictly centered column ---------- */
+          .hero-split-grid {
+            grid-template-columns: minmax(0, 1fr);
+            padding: 0 !important;
+            gap: 0;
+            text-align: center;
+            justify-items: stretch;
+          }
+          .hero-text-col {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 16px;
+            width: 100%;
+            min-width: 0;
+            padding: 30px 20px 34px 20px;
+          }
+          .hero-tagline { text-align: center; width: 100%; font-size: 0.74rem; letter-spacing: 0.16em; }
+          .hero-main-title { font-size: 2.4rem !important; line-height: 1.1 !important; text-align: center; text-wrap: balance; }
+          .hero-sub-copy { max-width: 100%; text-align: center; font-size: 1.02rem; line-height: 1.65; margin: 0 auto; }
+
+          .hero-text-col .hero-pill-cluster {
+            flex-direction: row;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            justify-content: flex-start;
+            gap: 10px;
+            margin: 0 -20px;
+            padding: 6px 20px 12px 20px;
+            width: calc(100% + 40px);
+            max-width: none;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x proximity;
+          }
+          /* auto margins = centered when it fits, still swipeable when it overflows */
+          .hero-pill-cluster .h-pill:first-child { margin-left: auto; }
+          .hero-pill-cluster .h-pill:last-child { margin-right: auto; }
+          .hero-pill-cluster .h-pill {
+            white-space: nowrap;
+            flex-shrink: 0;
+            scroll-snap-align: center;
+            border-radius: 999px;
+            border: 0.5px solid var(--ios-hairline);
+            background: var(--ios-glass);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            box-shadow: var(--ios-shadow);
+          }
+          .h-pill:hover { transform: none; background: var(--ios-glass); border-color: var(--ios-hairline); box-shadow: var(--ios-shadow); }
+          .h-pill:active { background: var(--ios-glass-strong); }
+
+          .hero-text-col > div:last-child { justify-content: center !important; }
+          .hero-cta-btn {
+            width: 100%;
+            max-width: 420px;
+            padding: 17px 24px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #1a8cff 0%, #0071e3 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 24px rgba(0, 113, 227, 0.28);
+            text-align: center;
+          }
+          .hero-cta-btn:hover { transform: none; background: linear-gradient(180deg, #1a8cff 0%, #0071e3 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 24px rgba(0, 113, 227, 0.28); }
+          .hero-cta-btn:active { transform: scale(0.97); }
+
+          .hero-box {
+            order: -1;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 75vh !important;
+            aspect-ratio: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            border-bottom: 0.5px solid var(--ios-hairline);
+            box-shadow: none;
+            overflow: hidden;
+          }
+          .glass-sound-btn { top: 16px; right: 16px; background: rgba(255, 255, 255, 0.18); border: 0.5px solid rgba(255, 255, 255, 0.55); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
+
+          /* Hero drawer = iOS bottom sheet */
+          .half-form-drawer {
+            border-radius: 24px 24px 0 0;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: saturate(180%) blur(24px);
+            -webkit-backdrop-filter: saturate(180%) blur(24px);
+            border-top: 0.5px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.18);
+            padding: 26px 20px calc(22px + var(--ios-safe-bottom)) 20px;
+          }
+          .drawer-input { font-size: 16px; border-radius: 12px; border: 0.5px solid var(--ios-hairline); background: rgba(255, 255, 255, 0.85); padding: 13px 16px; }
+          .drawer-btn { border-radius: 14px; padding: 15px; }
+          .drawer-btn:hover { transform: none; }
+          .drawer-btn:active { transform: scale(0.98); }
+          .drawer-dismiss { background: rgba(120, 120, 128, 0.16); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+          /* ---------- Layout : zero side gutters so cards can bleed ---------- */
+          .content-container { padding: 0; }
+          .section-padding { padding: 44px 0; }
+          .section-top-tight { padding-top: 24px; }
           .clinical-transformations-section { padding-left: 0 !important; padding-right: 0 !important; }
-          .content-container .sec-tag,
-          .content-container .sec-heading { text-align: center; width: 100%; display: block; }
-          .content-container section > p,
-          .extra-feature-card,
-          .consult-card,
-          .faq-answer { text-align: center; }
-          .extra-feature-card { display: flex; flex-direction: column; align-items: center; }
-          .faq-question { text-align: center; }
-          .faq-question > span:first-child { flex: 1; text-align: center; }
-          .consult-card .slots-pill { justify-content: center; }
-          .map-floating-badge { text-align: left; }
 
-          /* Review + Clinical Transformation cards: fit the 16px-padded container, no squeezing */
-          .infinite-marquee-box, .interactive-cases-box { margin-left: 0; margin-right: 0; }
-          .infinite-marquee-inner, .interactive-cases-inner { gap: 16px; }
-          .review-bubble, .case-card-stream { width: min(calc(100vw - 56px), 360px); text-align: center; }
+          /* ---------- Section titles / tags / body copy : strictly centered ---------- */
+          .content-container .sec-tag,
+          .content-container .sec-heading {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 0 20px;
+          }
+          .content-container .sec-tag { font-size: 0.74rem; letter-spacing: 0.16em; margin-bottom: 8px; }
+          .content-container .sec-heading { font-size: 2rem; line-height: 1.15; margin-bottom: 24px; text-wrap: balance; }
+          .content-container section > p { text-align: center; padding: 0 24px; line-height: 1.65; }
+
+          /* ---------- EDGE-TO-EDGE FULL-BLEED CARDS ---------- */
+          .doctor-card,
+          .extra-feature-card,
+          .review-bubble,
+          .case-card-stream,
+          .consult-card,
+          .map-preview-card {
+            margin-left: 0;
+            margin-right: 0;
+            border-radius: 0 !important;
+            border-style: solid;
+            border-color: var(--ios-hairline);
+            border-width: 0.5px 0;
+            background: var(--ios-glass);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            box-shadow: var(--ios-shadow);
+            transition: background 0.25s ease, box-shadow 0.25s ease;
+          }
+          /* no sticky-hover lift on touch; replace with an iOS-style press state */
+          .doctor-card:hover,
+          .extra-feature-card:hover,
+          .review-bubble:hover,
+          .case-card-stream:hover,
+          .consult-card:hover {
+            transform: none;
+            border-color: var(--ios-hairline);
+            background: var(--ios-glass);
+            box-shadow: var(--ios-shadow);
+          }
+          .doctor-card:active,
+          .extra-feature-card:active,
+          .review-bubble:active,
+          .case-card-stream:active { background: var(--ios-glass-strong); box-shadow: var(--ios-shadow-lift); }
+
+          /* Doctor card */
+          .doctor-card { width: 100%; margin-bottom: 28px; }
+          .doc-img { height: 460px; padding-top: 0; }
+          .doc-tag { top: 16px; right: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(255, 255, 255, 0.78); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border: 0.5px solid var(--ios-hairline); box-shadow: var(--ios-shadow); font-size: 0.78rem; }
+
+          /* Stats + accreditation (inset, rounded — they are chips, not cards) */
+          .stats-row { grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px; margin-top: 26px; }
+          .stat-pill { border-radius: 18px; padding: 22px 10px; border: 0.5px solid var(--ios-hairline); background: var(--ios-glass); box-shadow: var(--ios-shadow); }
+          .stat-pill:hover { transform: none; background: var(--ios-glass); border-color: var(--ios-hairline); box-shadow: var(--ios-shadow); }
+          .stat-pill:active { background: var(--ios-glass-strong); }
+          .stat-num { font-size: 1.9rem; }
+          .accreditation-row { padding: 0 16px; justify-content: center; gap: 10px; }
+          .acc-badge { border-radius: 999px; border: 0.5px solid var(--ios-hairline); background: var(--ios-glass); box-shadow: var(--ios-shadow); padding: 10px 18px; }
+          .acc-badge:hover { transform: none; background: var(--ios-glass); border-color: var(--ios-hairline); box-shadow: var(--ios-shadow); }
+
+          /* Feature cards */
+          .extra-features-grid { grid-template-columns: 1fr; gap: 12px; margin: 28px 0 0 0; }
+          .extra-feature-card { padding: 28px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+          /* Reviews + Clinical Transformations : one full-width card per swipe */
+          .infinite-marquee-box, .interactive-cases-box { width: 100%; margin: 8px 0 0 0; }
+          .infinite-marquee-inner, .interactive-cases-inner { gap: 0; }
+          .review-bubble, .case-card-stream {
+            width: 100vw;
+            max-width: 100vw;
+            border-right: 0.5px solid var(--ios-hairline);
+            text-align: center;
+          }
+          .review-bubble { padding: 28px 24px; }
           .review-bubble .rev-head { justify-content: center; gap: 10px; flex-wrap: wrap; }
-          .review-bubble .rev-quote, .case-card-stream p { text-align: center; }
-          .ai-chat-modal { bottom: 98px !important; right: 14px !important; left: 14px !important; width: calc(100vw - 28px) !important; height: min(580px, 80vh) !important; }
+          .review-bubble .rev-quote { text-align: center; }
+
+          .case-card-stream { padding: 0 0 22px 0; }
+          .case-card-stream .case-photo-slot { border-radius: 0; height: 300px; margin-bottom: 16px; }
+          .case-card-stream p { text-align: center; padding: 0 20px; }
+
+          /* FAQ = iOS grouped list, full-bleed rows with hairline dividers */
+          .faq-list { gap: 0; border-top: 0.5px solid var(--ios-hairline); }
+          .faq-item {
+            border-radius: 0;
+            border-style: solid;
+            border-color: var(--ios-hairline);
+            border-width: 0 0 0.5px 0;
+            background: var(--ios-glass);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            box-shadow: none;
+          }
+          .faq-item:hover { background: var(--ios-glass); border-color: var(--ios-hairline); }
+          .faq-question { padding: 18px 20px; text-align: center; font-size: 0.96rem; }
+          .faq-question > span:first-child { flex: 1; text-align: center; }
+          .faq-answer { padding: 0 20px; text-align: center; }
+          .faq-item.active .faq-answer { padding-bottom: 20px; }
+
+          /* Consultation card */
+          .consult-card { padding: 32px 20px; margin-bottom: 20px; text-align: center; }
+          .consult-card .slots-pill { justify-content: center; border-radius: 999px; }
+          .guarantee-strip { align-items: center; text-align: center; border-radius: 14px; border: 0.5px solid #d1edd8; }
+          .form-input { font-size: 16px; border-radius: 12px; border: 0.5px solid var(--ios-hairline); background: rgba(255, 255, 255, 0.85); padding: 15px 16px; text-align: left; }
+          .form-input:focus { border-color: var(--apple-blue); box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.14); }
+          .btn-confirm { border-radius: 14px; padding: 17px; background: linear-gradient(180deg, #1a8cff 0%, #0071e3 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 24px rgba(0, 113, 227, 0.28); }
+          .btn-confirm:hover { transform: none; }
+          .btn-confirm:active { transform: scale(0.98); }
+
+          /* Map card */
+          .map-preview-card { width: 100%; }
+          .map-preview-iframe-container { height: 340px; }
+          .map-floating-badge { top: 12px; left: 12px; width: calc(100% - 24px); max-width: none; border-radius: 16px; background: rgba(255, 255, 255, 0.82); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border: 0.5px solid var(--ios-hairline); box-shadow: var(--ios-shadow-lift); text-align: left; }
+          .map-icon-btn { border-radius: 10px; }
+
+          footer {
+            padding: 24px 20px calc(36px + var(--ios-safe-bottom)) 20px;
+            background: var(--ios-glass);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-top: 0.5px solid var(--ios-hairline);
+          }
+
+          /* ---------- Floating AI button (frosted) ---------- */
+          .floating-ai {
+            bottom: calc(20px + var(--ios-safe-bottom)) !important;
+            right: 16px !important;
+            width: 58px;
+            height: 58px;
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border: 0.5px solid var(--ios-hairline);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
+          }
+
+          /* ---------- AI chat : iOS sheet, always inside the viewport ---------- */
+          .ai-chat-modal {
+            left: 12px !important;
+            right: 12px !important;
+            bottom: calc(92px + var(--ios-safe-bottom)) !important;
+            width: auto !important;
+            max-width: none !important;
+            height: min(580px, 78vh) !important;
+            height: min(580px, calc(100dvh - 140px)) !important;
+            max-height: none !important;
+          }
+          .ai-chat-window {
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: saturate(180%) blur(24px);
+            -webkit-backdrop-filter: saturate(180%) blur(24px);
+            border: 0.5px solid rgba(255, 255, 255, 0.65);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.28), 0 0 0 0.5px var(--ios-hairline);
+          }
+
+          /* FIX: base rule "padding: 0 !important" was wiping the header insets,
+             so the green dot + × sat flush against (and past) the modal edge. */
+          .ai-chat-header {
+            padding: 0 14px 0 18px !important;
+            height: 60px;
+            width: 100%;
+            flex-shrink: 0;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 0.5px solid var(--ios-hairline);
+          }
+          .ai-header-left { flex: 1 1 auto; min-width: 0; gap: 10px; }
+          .ai-header-left > div { flex: 0 0 auto; box-shadow: 0 0 8px rgba(52, 199, 89, 0.7); }
+          .ai-header-left strong { min-width: 0; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          .ai-header-right { flex: 0 0 auto; }
+          .ai-header-right button {
+            width: 32px;
+            height: 32px;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            background: rgba(120, 120, 128, 0.16) !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem !important;
+            line-height: 1;
+          }
+
+          .ai-chat-body { padding: 18px 16px; background: rgba(247, 244, 239, 0.55); }
+          .ai-msg { border-radius: 18px; }
+          .ai-bot { background: rgba(255, 255, 255, 0.92); border: 0.5px solid var(--ios-hairline); border-bottom-left-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+          .ai-user { background: linear-gradient(180deg, #1a8cff 0%, #0071e3 100%); border-bottom-right-radius: 6px; }
+          .ai-chat-footer { padding: 12px 14px calc(12px + var(--ios-safe-bottom)) 14px; background: rgba(255, 255, 255, 0.78); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-top: 0.5px solid var(--ios-hairline); }
+          .ai-chat-input { font-size: 16px; border-radius: 999px; padding: 11px 18px; border: 0.5px solid var(--ios-hairline); min-width: 0; }
+          .ai-send-btn { border-radius: 999px; flex: 0 0 auto; }
+          .ai-send-btn:hover { transform: none; }
+          .chat-calendar-card { border-radius: 16px; width: 92%; background: rgba(255, 255, 255, 0.92); }
+          .chat-calendar-input { font-size: 16px; border-radius: 10px; }
+          .chat-calendar-btn { border-radius: 10px; }
         }
       `}</style>
 
