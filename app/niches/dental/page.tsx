@@ -786,11 +786,31 @@ export default function DentalPage() {
           .hero-pill-cluster { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; justify-content: flex-start; gap: 10px; padding: 6px 16px 10px 16px; width: 100%; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
           .hero-pill-cluster .h-pill { white-space: nowrap; flex-shrink: 0; scroll-snap-align: start; }
           .hero-box { order: -1; width: 100vw !important; max-width: 100vw !important; height: 75vh !important; aspect-ratio: auto !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; border-left: none; border-right: none; overflow: hidden; }
-          .clinical-transformations-section { padding-left: 16px !important; padding-right: 16px !important; }
           .hero-main-title { font-size: 2.5rem !important; line-height: 1.12 !important; text-align: center; }
           .extra-features-grid { grid-template-columns: 1fr; }
           .stats-row { grid-template-columns: 1fr; }
           .content-container { padding: 0 16px; }
+
+          /* Mobile centering: headings, tags and text blocks (px-4 comes from .content-container above) */
+          .clinical-transformations-section { padding-left: 0 !important; padding-right: 0 !important; }
+          .content-container .sec-tag,
+          .content-container .sec-heading { text-align: center; width: 100%; display: block; }
+          .content-container section > p,
+          .extra-feature-card,
+          .consult-card,
+          .faq-answer { text-align: center; }
+          .extra-feature-card { display: flex; flex-direction: column; align-items: center; }
+          .faq-question { text-align: center; }
+          .faq-question > span:first-child { flex: 1; text-align: center; }
+          .consult-card .slots-pill { justify-content: center; }
+          .map-floating-badge { text-align: left; }
+
+          /* Review + Clinical Transformation cards: fit the 16px-padded container, no squeezing */
+          .infinite-marquee-box, .interactive-cases-box { margin-left: 0; margin-right: 0; }
+          .infinite-marquee-inner, .interactive-cases-inner { gap: 16px; }
+          .review-bubble, .case-card-stream { width: min(calc(100vw - 56px), 360px); text-align: center; }
+          .review-bubble .rev-head { justify-content: center; gap: 10px; flex-wrap: wrap; }
+          .review-bubble .rev-quote, .case-card-stream p { text-align: center; }
           .ai-chat-modal { bottom: 98px !important; right: 14px !important; left: 14px !important; width: calc(100vw - 28px) !important; height: min(580px, 80vh) !important; }
         }
       `}</style>
