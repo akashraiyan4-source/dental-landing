@@ -1120,6 +1120,69 @@ export default function DentalPage() {
           .chat-calendar-input { font-size: 16px; border-radius: 10px; }
           .chat-calendar-btn { border-radius: 10px; }
         }
+
+        /* =====================================================================
+           SCROLL UNLOCK + SMOOTH TOUCH SCROLLING
+           (kept last so it wins over every rule above, including the mobile block)
+           ===================================================================== */
+
+        /* Global smooth scrolling */
+        html, body {
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+          height: auto;
+          touch-action: manipulation; /* any pan + pinch-zoom allowed, only double-tap-zoom removed */
+        }
+        @media (prefers-reduced-motion: reduce) {
+          html, body { scroll-behavior: auto; }
+        }
+
+        /* body must NOT become its own scroll container (it was: overflow-x:hidden on both
+           html and body). "clip" hides horizontal bleed without trapping vertical scroll
+           and without breaking the sticky header. */
+        body { overflow-x: clip; overflow-y: visible; }
+
+        /* .app-shell had inline overflow-x:hidden -> turned it into a scroll container
+           (vertical touch-scroll got captured + sticky header stopped sticking). */
+        .app-shell { overflow-x: clip !important; overflow-y: visible !important; touch-action: manipulation; }
+
+        /* Hero box: clip the video/drawer WITHOUT creating a scroll container */
+        .hero-box { overflow: hidden; overflow: clip; touch-action: manipulation; overscroll-behavior: auto; }
+        .hero-vid { pointer-events: none; touch-action: manipulation; }
+
+        /* ROOT CAUSE of the hero "scroll lock": this strip spans the full hero width and had
+           touch-action:none, so any vertical swipe starting on it was swallowed.
+           Now it only allows horizontal gestures to reach JS; vertical swipes scroll the page. */
+        .swipe-interactive-zone { touch-action: pan-y !important; overscroll-behavior: auto; }
+        .swipe-arrow-handle { touch-action: pan-y; }
+
+        /* Images, videos and cards: vertical scrolling always wins on touch */
+        img, video, .doc-img, .case-photo-slot, .case-photo-slot img {
+          touch-action: pan-y pinch-zoom;
+          -webkit-user-drag: none;
+        }
+        .doctor-card, .extra-feature-card, .consult-card, .map-preview-card,
+        .stat-pill, .acc-badge, .faq-item, .faq-question, .rating-strip, .press-trust-bar,
+        .celebrity-ticker-bar, .doc-tag {
+          touch-action: pan-y pinch-zoom;
+        }
+        /* marquee cards: vertical = native scroll, horizontal = your inertial-drag JS */
+        .infinite-marquee-box, .interactive-cases-box,
+        .review-bubble, .case-card-stream { touch-action: pan-y pinch-zoom; }
+
+        /* horizontally swipeable pill row must pass vertical swipes up to the page */
+        .hero-pill-cluster { touch-action: pan-x pan-y; overscroll-behavior-x: contain; }
+        .h-pill { touch-action: manipulation; }
+
+        /* Map iframe: don't let it swallow page scroll on touch */
+        @media (max-width: 768px) {
+          .map-preview-iframe-container iframe { pointer-events: none; }
+          .map-preview-iframe-container { touch-action: pan-y pinch-zoom; }
+        }
+
+        /* Inner scrollers (chat, drawer): scroll themselves smoothly, never trap the page behind */
+        .ai-chat-body { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; scroll-behavior: smooth; }
+        .half-form-drawer { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
       `}</style>
 
       <header>
