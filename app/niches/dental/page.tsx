@@ -827,9 +827,42 @@ export default function DentalPage() {
         </div>
 
         <div className="hero-box w-screen sm:w-full px-0 mx-0 rounded-none sm:rounded-3xl overflow-hidden" id="heroSec" ref={heroBoxRef}>
-          <video ref={vidStartRef} className="hero-vid w-full h-full object-cover" src="/niches/dental/start.mp4" playsInline autoPlay muted loop preload="auto" poster="/niches/dental/start-poster.jpg" style={{ zIndex: 1, opacity: 1 }}></video>
-          <video ref={vidTransRef} className="hero-vid w-full h-full object-cover" src="/niches/dental/trans.mp4" playsInline muted preload="auto" style={{ zIndex: 2, opacity: 0, pointerEvents: 'none' }}></video>
-          <video ref={vidEndRef} className="hero-vid w-full h-full object-cover" src="/niches/dental/end.mp4" playsInline muted loop preload="auto" style={{ zIndex: 3, opacity: 0, pointerEvents: 'none' }}></video>
+          {/* Start Video (Sad Loop) */}
+          <video 
+            ref={vidStartRef} 
+            className="hero-vid w-full h-full object-cover" 
+            src="/niches/dental/start.mp4" 
+            playsInline 
+            autoPlay 
+            muted 
+            loop 
+            preload="auto" 
+            poster="/niches/dental/start-poster.jpg" 
+            style={{ zIndex: 1, opacity: 1, transition: 'opacity 0.15s ease' }}
+          ></video>
+
+          {/* Transition Video (Plays once on slide) */}
+          <video 
+            ref={vidTransRef} 
+            className="hero-vid w-full h-full object-cover" 
+            src="/niches/dental/trans.mp4" 
+            playsInline 
+            muted 
+            preload="auto" 
+            style={{ zIndex: 2, opacity: 0, pointerEvents: 'none', transition: 'opacity 0.15s ease' }}
+          ></video>
+
+          {/* End Video (Happy Loop) */}
+          <video 
+            ref={vidEndRef} 
+            className="hero-vid w-full h-full object-cover" 
+            src="/niches/dental/end.mp4" 
+            playsInline 
+            muted 
+            loop 
+            preload="auto" 
+            style={{ zIndex: 3, opacity: 0, pointerEvents: 'none', transition: 'opacity 0.15s ease' }}
+          ></video>
 
           <button className="glass-sound-btn" onClick={toggleSound} aria-label="Toggle Sound">
             <svg dangerouslySetInnerHTML={{ __html: isMuted ? mutedSvg : unmutedSvg }} viewBox="0 0 24 24" />
