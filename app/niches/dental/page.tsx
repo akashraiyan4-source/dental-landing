@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
 export default function DentalPage() {
   const [mounted, setMounted] = useState(false);
@@ -308,7 +308,7 @@ export default function DentalPage() {
       return;
     }
     try {
-      const response = await fetch('/api/booking/create', {
+      const response = await fetch(`${API_BASE}/api/booking/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -424,7 +424,7 @@ export default function DentalPage() {
     }
     setChatSlotStatus({ text: 'Syncing appointment...', color: '#0071e3' });
     try {
-      const response = await fetch('/api/booking/create', {
+      const response = await fetch(`${API_BASE}/api/booking/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -694,7 +694,6 @@ export default function DentalPage() {
         .map-icon-btn { width: 36px; height: 36px; border-radius: 6px; background: #f0f4fd; border: 1px solid rgba(0, 113, 227, 0.2); display: flex; align-items: center; justify-content: center; color: var(--apple-blue); text-decoration: none; font-size: 1rem; transition: transform 0.2s ease; }
         .map-icon-btn:hover { transform: translateY(-2px); }
 
-        /* FIXED FLOATING AI (Bottom Right Corner) */
         .floating-ai { 
           position: fixed !important; 
           bottom: 24px !important; 
@@ -721,7 +720,6 @@ export default function DentalPage() {
         .ai-avatar { font-size: 1.7rem; line-height: 1; display: inline-block; transition: transform 0.4s ease; }
         .status-dot-tiny { width: 11px; height: 11px; border-radius: 50%; background: #34c759; position: absolute; top: 4px; right: 4px; border: 2px solid #ffffff; box-shadow: 0 0 6px rgba(52, 199, 89, 0.8); }
         
-        /* FIXED AI CHAT MODAL */
         .ai-chat-modal { 
           position: fixed !important; 
           bottom: 96px !important; 
@@ -775,10 +773,6 @@ export default function DentalPage() {
 
         footer { padding: 24px 28px 36px 28px; text-align: center; font-size: 0.84rem; color: var(--apple-gray); border-top: 1px solid var(--apple-border); background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); margin-top: 0 !important; }
         
-        /* =====================================================================
-           MOBILE  (<= 768px)  —  native iOS app aesthetic
-           Edge-to-edge cards · strict centering · frosted glass · Apple shadows
-           ===================================================================== */
         @media (max-width: 768px) {
           :root {
             --ios-glass: rgba(255, 255, 255, 0.72);
@@ -792,7 +786,6 @@ export default function DentalPage() {
 
           html, body { -webkit-text-size-adjust: 100%; overscroll-behavior-y: none; }
 
-          /* ---------- Nav bar / top strips : translucent iOS bars ---------- */
           header {
             padding: calc(12px + var(--ios-safe-top)) 20px 12px 20px;
             justify-content: center !important;
@@ -815,7 +808,6 @@ export default function DentalPage() {
           }
           .rating-strip { font-size: 0.8rem; padding: 12px 16px; text-align: center; flex-wrap: wrap; }
 
-          /* ---------- Hero : strictly centered column ---------- */
           .hero-split-grid {
             grid-template-columns: minmax(0, 1fr);
             padding: 0 !important;
@@ -836,7 +828,7 @@ export default function DentalPage() {
           .hero-main-title { font-size: 2.4rem !important; line-height: 1.1 !important; text-align: center; text-wrap: balance; }
           .hero-sub-copy { max-width: 100%; text-align: center; font-size: 1.02rem; line-height: 1.65; margin: 0 auto; }
 
-          .hero-text-col .hero-pill-cluster {
+          .hero-pill-cluster {
             flex-direction: row;
             flex-wrap: nowrap;
             overflow-x: auto;
@@ -850,7 +842,6 @@ export default function DentalPage() {
             -webkit-overflow-scrolling: touch;
             scroll-snap-type: x proximity;
           }
-          /* auto margins = centered when it fits, still swipeable when it overflows */
           .hero-pill-cluster .h-pill:first-child { margin-left: auto; }
           .hero-pill-cluster .h-pill:last-child { margin-right: auto; }
           .hero-pill-cluster .h-pill {
@@ -898,7 +889,6 @@ export default function DentalPage() {
           }
           .glass-sound-btn { top: 16px; right: 16px; background: rgba(255, 255, 255, 0.18); border: 0.5px solid rgba(255, 255, 255, 0.55); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
 
-          /* Hero drawer = iOS bottom sheet */
           .half-form-drawer {
             border-radius: 24px 24px 0 0;
             background: rgba(255, 255, 255, 0.82);
@@ -914,13 +904,11 @@ export default function DentalPage() {
           .drawer-btn:active { transform: scale(0.98); }
           .drawer-dismiss { background: rgba(120, 120, 128, 0.16); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
-          /* ---------- Layout : zero side gutters so cards can bleed ---------- */
           .content-container { padding: 0; }
           .section-padding { padding: 44px 0; }
           .section-top-tight { padding-top: 24px; }
           .clinical-transformations-section { padding-left: 0 !important; padding-right: 0 !important; }
 
-          /* ---------- Section titles / tags / body copy : strictly centered ---------- */
           .content-container .sec-tag,
           .content-container .sec-heading {
             display: block;
@@ -932,7 +920,6 @@ export default function DentalPage() {
           .content-container .sec-heading { font-size: 2rem; line-height: 1.15; margin-bottom: 24px; text-wrap: balance; }
           .content-container section > p { text-align: center; padding: 0 24px; line-height: 1.65; }
 
-          /* ---------- EDGE-TO-EDGE FULL-BLEED CARDS ---------- */
           .doctor-card,
           .extra-feature-card,
           .review-bubble,
@@ -951,7 +938,6 @@ export default function DentalPage() {
             box-shadow: var(--ios-shadow);
             transition: background 0.25s ease, box-shadow 0.25s ease;
           }
-          /* no sticky-hover lift on touch; replace with an iOS-style press state */
           .doctor-card:hover,
           .extra-feature-card:hover,
           .review-bubble:hover,
@@ -967,12 +953,10 @@ export default function DentalPage() {
           .review-bubble:active,
           .case-card-stream:active { background: var(--ios-glass-strong); box-shadow: var(--ios-shadow-lift); }
 
-          /* Doctor card */
           .doctor-card { width: 100%; margin-bottom: 28px; }
           .doc-img { height: 460px; padding-top: 0; }
           .doc-tag { top: 16px; right: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(255, 255, 255, 0.78); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border: 0.5px solid var(--ios-hairline); box-shadow: var(--ios-shadow); font-size: 0.78rem; }
 
-          /* Stats + accreditation (inset, rounded — they are chips, not cards) */
           .stats-row { grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px; margin-top: 26px; }
           .stat-pill { border-radius: 18px; padding: 22px 10px; border: 0.5px solid var(--ios-hairline); background: var(--ios-glass); box-shadow: var(--ios-shadow); }
           .stat-pill:hover { transform: none; background: var(--ios-glass); border-color: var(--ios-hairline); box-shadow: var(--ios-shadow); }
@@ -982,11 +966,9 @@ export default function DentalPage() {
           .acc-badge { border-radius: 999px; border: 0.5px solid var(--ios-hairline); background: var(--ios-glass); box-shadow: var(--ios-shadow); padding: 10px 18px; }
           .acc-badge:hover { transform: none; background: var(--ios-glass); border-color: var(--ios-hairline); box-shadow: var(--ios-shadow); }
 
-          /* Feature cards */
           .extra-features-grid { grid-template-columns: 1fr; gap: 12px; margin: 28px 0 0 0; }
           .extra-feature-card { padding: 28px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
 
-          /* Reviews + Clinical Transformations : one full-width card per swipe */
           .infinite-marquee-box, .interactive-cases-box { width: 100%; margin: 8px 0 0 0; }
           .infinite-marquee-inner, .interactive-cases-inner { gap: 0; }
           .review-bubble, .case-card-stream {
@@ -1003,7 +985,6 @@ export default function DentalPage() {
           .case-card-stream .case-photo-slot { border-radius: 0; height: 300px; margin-bottom: 16px; }
           .case-card-stream p { text-align: center; padding: 0 20px; }
 
-          /* FAQ = iOS grouped list, full-bleed rows with hairline dividers */
           .faq-list { gap: 0; border-top: 0.5px solid var(--ios-hairline); }
           .faq-item {
             border-radius: 0;
@@ -1021,7 +1002,6 @@ export default function DentalPage() {
           .faq-answer { padding: 0 20px; text-align: center; }
           .faq-item.active .faq-answer { padding-bottom: 20px; }
 
-          /* Consultation card */
           .consult-card { padding: 32px 20px; margin-bottom: 20px; text-align: center; }
           .consult-card .slots-pill { justify-content: center; border-radius: 999px; }
           .guarantee-strip { align-items: center; text-align: center; border-radius: 14px; border: 0.5px solid #d1edd8; }
@@ -1031,7 +1011,6 @@ export default function DentalPage() {
           .btn-confirm:hover { transform: none; }
           .btn-confirm:active { transform: scale(0.98); }
 
-          /* Map card */
           .map-preview-card { width: 100%; }
           .map-preview-iframe-container { height: 340px; }
           .map-floating-badge { top: 12px; left: 12px; width: calc(100% - 24px); max-width: none; border-radius: 16px; background: rgba(255, 255, 255, 0.82); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border: 0.5px solid var(--ios-hairline); box-shadow: var(--ios-shadow-lift); text-align: left; }
@@ -1045,7 +1024,6 @@ export default function DentalPage() {
             border-top: 0.5px solid var(--ios-hairline);
           }
 
-          /* ---------- Floating AI button (frosted) ---------- */
           .floating-ai {
             bottom: calc(20px + var(--ios-safe-bottom)) !important;
             right: 16px !important;
@@ -1058,7 +1036,6 @@ export default function DentalPage() {
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
           }
 
-          /* ---------- AI chat : iOS sheet, always inside the viewport ---------- */
           .ai-chat-modal {
             left: 12px !important;
             right: 12px !important;
@@ -1078,8 +1055,6 @@ export default function DentalPage() {
             box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.28), 0 0 0 0.5px var(--ios-hairline);
           }
 
-          /* FIX: base rule "padding: 0 !important" was wiping the header insets,
-             so the green dot + × sat flush against (and past) the modal edge. */
           .ai-chat-header {
             padding: 0 14px 0 18px !important;
             height: 60px;
@@ -1121,42 +1096,25 @@ export default function DentalPage() {
           .chat-calendar-btn { border-radius: 10px; }
         }
 
-        /* =====================================================================
-           SCROLL UNLOCK + SMOOTH TOUCH SCROLLING
-           (kept last so it wins over every rule above, including the mobile block)
-           ===================================================================== */
-
-        /* Global smooth scrolling */
         html, body {
           scroll-behavior: smooth;
           -webkit-overflow-scrolling: touch;
           height: auto;
-          touch-action: manipulation; /* any pan + pinch-zoom allowed, only double-tap-zoom removed */
+          touch-action: manipulation;
         }
         @media (prefers-reduced-motion: reduce) {
           html, body { scroll-behavior: auto; }
         }
 
-        /* body must NOT become its own scroll container (it was: overflow-x:hidden on both
-           html and body). "clip" hides horizontal bleed without trapping vertical scroll
-           and without breaking the sticky header. */
         body { overflow-x: clip; overflow-y: visible; }
-
-        /* .app-shell had inline overflow-x:hidden -> turned it into a scroll container
-           (vertical touch-scroll got captured + sticky header stopped sticking). */
         .app-shell { overflow-x: clip !important; overflow-y: visible !important; touch-action: manipulation; }
 
-        /* Hero box: clip the video/drawer WITHOUT creating a scroll container */
         .hero-box { overflow: hidden; overflow: clip; touch-action: manipulation; overscroll-behavior: auto; }
         .hero-vid { pointer-events: none; touch-action: manipulation; }
 
-        /* ROOT CAUSE of the hero "scroll lock": this strip spans the full hero width and had
-           touch-action:none, so any vertical swipe starting on it was swallowed.
-           Now it only allows horizontal gestures to reach JS; vertical swipes scroll the page. */
         .swipe-interactive-zone { touch-action: pan-y !important; overscroll-behavior: auto; }
         .swipe-arrow-handle { touch-action: pan-y; }
 
-        /* Images, videos and cards: vertical scrolling always wins on touch */
         img, video, .doc-img, .case-photo-slot, .case-photo-slot img {
           touch-action: pan-y pinch-zoom;
           -webkit-user-drag: none;
@@ -1166,21 +1124,17 @@ export default function DentalPage() {
         .celebrity-ticker-bar, .doc-tag {
           touch-action: pan-y pinch-zoom;
         }
-        /* marquee cards: vertical = native scroll, horizontal = your inertial-drag JS */
         .infinite-marquee-box, .interactive-cases-box,
         .review-bubble, .case-card-stream { touch-action: pan-y pinch-zoom; }
 
-        /* horizontally swipeable pill row must pass vertical swipes up to the page */
         .hero-pill-cluster { touch-action: pan-x pan-y; overscroll-behavior-x: contain; }
         .h-pill { touch-action: manipulation; }
 
-        /* Map iframe: don't let it swallow page scroll on touch */
         @media (max-width: 768px) {
           .map-preview-iframe-container iframe { pointer-events: none; }
           .map-preview-iframe-container { touch-action: pan-y pinch-zoom; }
         }
 
-        /* Inner scrollers (chat, drawer): scroll themselves smoothly, never trap the page behind */
         .ai-chat-body { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; scroll-behavior: smooth; }
         .half-form-drawer { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
       `}</style>
@@ -1217,7 +1171,6 @@ export default function DentalPage() {
         </div>
 
         <div className="hero-box w-screen sm:w-full px-0 mx-0 rounded-none sm:rounded-3xl overflow-hidden" id="heroSec" ref={heroBoxRef}>
-          {/* Start Video (Sad Loop) */}
           <video 
             ref={vidStartRef} 
             className="hero-vid w-full h-full object-cover" 
@@ -1231,7 +1184,6 @@ export default function DentalPage() {
             style={{ zIndex: 1, opacity: 1, transition: 'opacity 0.15s ease' }}
           ></video>
 
-          {/* Transition Video (Plays once on slide) */}
           <video 
             ref={vidTransRef} 
             className="hero-vid w-full h-full object-cover" 
@@ -1242,7 +1194,6 @@ export default function DentalPage() {
             style={{ zIndex: 2, opacity: 0, pointerEvents: 'none', transition: 'opacity 0.15s ease' }}
           ></video>
 
-          {/* End Video (Happy Loop) */}
           <video 
             ref={vidEndRef} 
             className="hero-vid w-full h-full object-cover" 
