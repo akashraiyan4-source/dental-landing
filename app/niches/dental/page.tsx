@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+
 export default function DentalPage() {
   const [mounted, setMounted] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -35,6 +37,8 @@ export default function DentalPage() {
   const [mainPhone, setMainPhone] = useState('');
   const [mainTreatment, setMainTreatment] = useState('dental');
   const [mainAppointmentDate, setMainAppointmentDate] = useState('');
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -333,21 +337,26 @@ export default function DentalPage() {
       alert('Please fill in your name, phone number, and select a preferred consultation date.');
       return;
     }
+    if (isBookingLoading) return;
+    setIsBookingLoading(true);
     try {
-      const response = await fetch('/api/booking/create', {
+      const treatmentLabels: Record<string, string> = {
+        dental: 'Handcrafted Porcelain Veneers',
+        cosmetic: 'Micro-Enamel Bio-Seal',
+        roofing: 'Full Arch Smile Alignment',
+      };
+      const response = await fetch(`${API_BASE}/api/booking`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          name: mainName, 
-          phone: mainPhone, 
-          sourceNiche: 'dental', 
-          landingPageId: 'dental-miami-01',
-          service: mainTreatment, 
-          appointmentDate: mainAppointmentDate,
-          triggers: ['leads', 'booking', 'whatsapp-integration', 'follow-up', 'lead-scoring', 'sentiment-analyzer', 'analytics']
+          fullName: mainName.trim(), 
+          phone: mainPhone.trim(), 
+          appointmentDate: mainAppointmentDate, 
+          treatment: treatmentLabels[mainTreatment] || mainTreatment, 
+          niche: 'dental'
         })
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
       if (response.ok) {
         alert('Priority Consultation Confirmed & Enterprise Automations Active!');
         setMainName(''); setMainPhone(''); setMainAppointmentDate('');
@@ -356,16 +365,23 @@ export default function DentalPage() {
       }
     } catch (err) {
       alert('Server connection failed.');
+    } finally {
+      setIsBookingLoading(false);
     }
   };
 
   const sendAiMessage = async () => {
-    if (!userInput.trim()) return;
+    if (!userInput.trim() || isChatLoading) return;
     const text = userInput.trim();
     if (text.length > 300) {
       alert("Please keep your message under 300 characters.");
       return;
     }
+
+    const history = chatMessages.map(m => ({
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: m.text
+    }));
 
     setChatMessages(prev => [...prev, { sender: 'user', text }]);
     setUserInput('');
@@ -374,19 +390,20 @@ export default function DentalPage() {
     const bookingKeywords = ['book', 'appointment', 'consultation', 'slot', 'schedule', 'তারিখ', 'বুক'];
     const wantsBooking = bookingKeywords.some(keyword => text.toLowerCase().includes(keyword));
 
+    setIsChatLoading(true);
     try {
-      const response = await fetch('/api/ai/chat', {
+      const response = await fetch(`${API_BASE}/api/ai-chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: text, 
-          sourceNiche: 'dental', 
-          landingPageId: 'dental-miami-01',
-          brandName: "SmileWay Studio", 
-          expertName: "Dr. Julian Vance" 
+          niche: 'dental', 
+          brandName: 'SmileWay Studio', 
+          expertName: 'Dr. Julian Vance, DDS',
+          history
         })
       });
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
       const replyText = (result && result.reply) ? result.reply : "Hey there! Welcome to SmileWay Studio. How can I help you out today?";
       
       setChatMessages(prev => [...prev, { sender: 'bot', text: replyText }]);
@@ -395,6 +412,8 @@ export default function DentalPage() {
       }
     } catch (error) {
       setChatMessages(prev => [...prev, { sender: 'bot', text: "Hey! Thanks for reaching out. Would you like me to grab a quick time slot for a chat?" }]);
+    } finally {
+      setIsChatLoading(false);
     }
   };
 
@@ -548,7 +567,7 @@ export default function DentalPage() {
         .ambient-bg-video { width: 100%; height: 100%; object-fit: cover; filter: blur(32px) brightness(1.05); transform: scale(1.1); opacity: 0.20; will-change: transform; }
         .ambient-bg-overlay { position: absolute; inset: 0; background: rgba(247, 244, 239, 0.90); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 
-        .app-shell { width: 100%; max-width: 1400px; margin: 0 auto; min-height: 100vh; position: relative; z-index: 1; display: flex; flex-direction: column; will-change: transform; }
+        .app-shell { width: 100%; max-width: 1400px; margin: 0 auto; min-height: 100vh; position: relative; z-index: 1; display: flex; flex-direction: column; }
         
         header { position: sticky; top: 0; z-index: 100; background: rgba(247, 244, 239, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 22px 36px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--apple-border); }
         .brand-title { font-size: 1.5rem; font-weight: 800; color: var(--apple-dark); letter-spacing: -0.035em; text-align: center; width: 100%; }
@@ -585,6 +604,8 @@ export default function DentalPage() {
         
         .hero-box { position: relative; width: 100%; max-width: 440px; margin: 0 auto; border-radius: 12px; overflow: hidden; aspect-ratio: 9 / 16; background: #0d131f; box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.25); border: 1px solid var(--apple-border); }
         .hero-vid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; background-color: #0d131f; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; width: 0; height: 0; }
         
         .glass-sound-btn { position: absolute; top: 20px; right: 20px; z-index: 30; width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.5); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2); }
         .glass-sound-btn svg { width: 19px; height: 19px; fill: rgba(255, 255, 255, 0.98); }
@@ -676,12 +697,12 @@ export default function DentalPage() {
         /* FIXED FLOATING AI (Bottom Right Corner) */
         .floating-ai { 
           position: fixed !important; 
-          bottom: 32px !important; 
-          right: 32px !important; 
+          bottom: 24px !important; 
+          right: 24px !important; 
           top: auto !important; 
           left: auto !important; 
           transform: none !important; 
-          z-index: 2147483647 !important; 
+          z-index: 9999 !important; 
           background: rgba(255, 255, 255, 0.98); 
           border: 1.5px solid var(--apple-border); 
           width: 60px; 
@@ -703,8 +724,8 @@ export default function DentalPage() {
         /* FIXED AI CHAT MODAL */
         .ai-chat-modal { 
           position: fixed !important; 
-          bottom: 104px !important; 
-          right: 32px !important; 
+          bottom: 96px !important; 
+          right: 24px !important; 
           top: auto !important; 
           left: auto !important; 
           transform: none !important; 
@@ -759,11 +780,13 @@ export default function DentalPage() {
           .brand-title { font-size: 1.25rem; text-align: center; }
           .phone-badge { display: none; }
           .rating-strip { font-size: 0.8rem; padding: 12px 16px; text-align: center; }
-          .hero-split-grid { grid-template-columns: 1fr; padding: 0 20px 40px 20px !important; gap: 24px; text-align: center; justify-items: center; }
-          .hero-text-col { align-items: center; text-align: center; gap: 16px; width: 100%; }
+          .hero-split-grid { grid-template-columns: minmax(0, 1fr); padding: 0 20px 40px 20px !important; gap: 24px; text-align: center; justify-items: center; }
+          .hero-text-col { align-items: center; text-align: center; gap: 16px; width: 100%; min-width: 0; }
           .hero-sub-copy { max-width: 100%; text-align: center; }
-          .hero-pill-cluster { justify-content: center; }
-          .hero-box { order: -1; width: 100% !important; max-width: 100% !important; height: 75vh !important; aspect-ratio: auto !important; margin: 0 auto !important; border-radius: 12px !important; }
+          .hero-pill-cluster { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; justify-content: flex-start; gap: 10px; padding: 6px 16px 10px 16px; width: 100%; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+          .hero-pill-cluster .h-pill { white-space: nowrap; flex-shrink: 0; scroll-snap-align: start; }
+          .hero-box { order: -1; width: 100vw !important; max-width: 100vw !important; height: 75vh !important; aspect-ratio: auto !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; border-left: none; border-right: none; overflow: hidden; }
+          .clinical-transformations-section { padding-left: 16px !important; padding-right: 16px !important; }
           .hero-main-title { font-size: 2.5rem !important; line-height: 1.12 !important; text-align: center; }
           .extra-features-grid { grid-template-columns: 1fr; }
           .stats-row { grid-template-columns: 1fr; }
@@ -793,20 +816,20 @@ export default function DentalPage() {
           <p className="hero-sub-copy">
             Zero-pain bio-enamel restoration and <span className="highlight-text">bespoke ultra-thin veneers</span> designed for natural radiance. Zero invasive grinding, 100% harmonious bite alignment, and private VIP treatment suites.
           </p>
-          <div className="hero-pill-cluster">
-            <div className="h-pill service-trigger-btn" data-topic="Zero-Prep Micro Veneers" style={{cursor: 'pointer'}}><span>✨</span> Zero-Prep Micro Veneers</div>
-            <div className="h-pill service-trigger-btn" data-topic="10-Year Structural Warranty" style={{cursor: 'pointer'}}><span>🛡</span> 10-Year Structural Warranty</div>
-            <div className="h-pill service-trigger-btn" data-topic="48-Hour Digital Smile Preview" style={{cursor: 'pointer'}}><span>⏱️</span> 48-Hour Digital Smile Preview</div>
+          <div className="hero-pill-cluster flex flex-row overflow-x-auto sm:flex-wrap justify-start sm:justify-center gap-2.5 px-4 no-scrollbar">
+            <div className="h-pill service-trigger-btn whitespace-nowrap flex-shrink-0" data-topic="Zero-Prep Micro Veneers" style={{cursor: 'pointer'}}><span>✨</span> Zero-Prep Micro Veneers</div>
+            <div className="h-pill service-trigger-btn whitespace-nowrap flex-shrink-0" data-topic="10-Year Structural Warranty" style={{cursor: 'pointer'}}><span>🛡</span> 10-Year Structural Warranty</div>
+            <div className="h-pill service-trigger-btn whitespace-nowrap flex-shrink-0" data-topic="48-Hour Digital Smile Preview" style={{cursor: 'pointer'}}><span>⏱️</span> 48-Hour Digital Smile Preview</div>
           </div>
           <div style={{ marginTop: '16px', width: '100%', display: 'flex' }}>
             <a href="#consultation-area" className="hero-cta-btn service-trigger-btn" data-topic="Priority Smile Triage">Reserve Priority Smile Triage →</a>
           </div>
         </div>
 
-        <div className="hero-box" id="heroSec" ref={heroBoxRef}>
-          <video ref={vidStartRef} className="hero-vid" src="/niches/dental/start.mp4" playsInline autoPlay muted loop preload="auto" poster="/niches/dental/start-poster.jpg" style={{ zIndex: 1, opacity: 1 }}></video>
-          <video ref={vidTransRef} className="hero-vid" src="/niches/dental/trans.mp4" playsInline muted preload="auto" style={{ zIndex: 2, opacity: 0, pointerEvents: 'none' }}></video>
-          <video ref={vidEndRef} className="hero-vid" src="/niches/dental/end.mp4" playsInline muted loop preload="auto" style={{ zIndex: 3, opacity: 0, pointerEvents: 'none' }}></video>
+        <div className="hero-box w-screen sm:w-full px-0 mx-0 rounded-none sm:rounded-3xl overflow-hidden" id="heroSec" ref={heroBoxRef}>
+          <video ref={vidStartRef} className="hero-vid w-full h-full object-cover" src="/niches/dental/start.mp4" playsInline autoPlay muted loop preload="auto" poster="/niches/dental/start-poster.jpg" style={{ zIndex: 1, opacity: 1 }}></video>
+          <video ref={vidTransRef} className="hero-vid w-full h-full object-cover" src="/niches/dental/trans.mp4" playsInline muted preload="auto" style={{ zIndex: 2, opacity: 0, pointerEvents: 'none' }}></video>
+          <video ref={vidEndRef} className="hero-vid w-full h-full object-cover" src="/niches/dental/end.mp4" playsInline muted loop preload="auto" style={{ zIndex: 3, opacity: 0, pointerEvents: 'none' }}></video>
 
           <button className="glass-sound-btn" onClick={toggleSound} aria-label="Toggle Sound">
             <svg dangerouslySetInnerHTML={{ __html: isMuted ? mutedSvg : unmutedSvg }} viewBox="0 0 24 24" />
@@ -933,7 +956,7 @@ export default function DentalPage() {
           </div>
         </section>
 
-        <section className="section-padding animate-on-scroll" style={{ paddingTop: 0 }}>
+        <section className="section-padding animate-on-scroll px-4 clinical-transformations-section" style={{ paddingTop: 0 }}>
           <div className="sec-tag">Proven Results</div>
           <h2 className="sec-heading">Clinical Transformations</h2>
           <div className="interactive-cases-box" id="casesBox">
@@ -1010,7 +1033,7 @@ export default function DentalPage() {
           </div>
         </section>
 
-        <section className="section-padding animate-on-scroll" id="consultation-area" style={{ paddingTop: 0 }}>
+        <section className="section-padding animate-on-scroll pb-0 mb-0" id="consultation-area" style={{ paddingTop: 0, paddingBottom: 0, marginBottom: 0 }}>
           <div className="consult-card">
             <div className="slots-pill"><span className="slots-dot"></span><span>Only 3 Priority Triage Slots Left This Week</span></div>
             <h3 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '6px' }}>Reserve Your Consultation</h3>
@@ -1027,7 +1050,7 @@ export default function DentalPage() {
               <option value="roofing">Full Arch Smile Alignment</option>
             </select>
             <input type="datetime-local" value={mainAppointmentDate} onChange={e => setMainAppointmentDate(e.target.value)} className="form-input" />
-            <button className="btn-confirm" onClick={submitMainForm}>Confirm Priority Appointment</button>
+            <button className="btn-confirm" onClick={submitMainForm} disabled={isBookingLoading} style={isBookingLoading ? { opacity: 0.7, cursor: 'not-allowed' } : undefined}>{isBookingLoading ? 'Processing...' : 'Confirm Priority Appointment'}</button>
           </div>
 
           <div className="map-preview-card">
@@ -1057,7 +1080,7 @@ export default function DentalPage() {
         <p>© 2026 SmileWay Private Dental Studio. All Rights Reserved.</p>
       </footer>
 
-      <div className={`floating-ai ${isChatOpen ? 'rotated' : ''}`} onClick={() => setIsChatOpen(!isChatOpen)} aria-label="Toggle AI Assistant">
+      <div className={`floating-ai fixed bottom-6 right-6 z-[9999] ${isChatOpen ? 'rotated' : ''}`} onClick={() => setIsChatOpen(!isChatOpen)} aria-label="Toggle AI Assistant">
         <span className="ai-avatar">🤖</span>
         <span className="status-dot-tiny"></span>
       </div>
@@ -1090,7 +1113,7 @@ export default function DentalPage() {
           </div>
           <div className="ai-chat-footer">
             <input type="text" value={userInput} onChange={e => setUserInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendAiMessage()} className="ai-chat-input" maxLength={300} placeholder="Type message..." />
-            <button className="ai-send-btn" onClick={sendAiMessage}>Send</button>
+            <button className="ai-send-btn" onClick={sendAiMessage} disabled={isChatLoading} style={isChatLoading ? { opacity: 0.7, cursor: 'not-allowed' } : undefined}>{isChatLoading ? '...' : 'Send'}</button>
           </div>
         </div>
       </div>
