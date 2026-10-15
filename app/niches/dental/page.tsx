@@ -531,7 +531,7 @@ export default function DentalPage() {
 
       <style jsx global>{`
         :root {
-          --page-cream: #F7F4EF;
+          --page-cream: #F5F5F7;
           --card-pure-white: #ffffff;
           --apple-dark: #141316;
           --apple-gray: #5C5854;
@@ -562,11 +562,11 @@ export default function DentalPage() {
         
         .ambient-bg-container { position: fixed; inset: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: var(--page-cream); transform: translate3d(0,0,0); backface-visibility: hidden; }
         .ambient-bg-video { width: 100%; height: 100%; object-fit: cover; filter: blur(32px) brightness(1.05); transform: scale(1.1); opacity: 0.20; will-change: transform; }
-        .ambient-bg-overlay { position: absolute; inset: 0; background: rgba(247, 244, 239, 0.90); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .ambient-bg-overlay { position: absolute; inset: 0; background: rgba(245, 245, 247, 0.90); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 
         .app-shell { width: 100%; max-width: 1400px; margin: 0 auto; min-height: 100vh; position: relative; z-index: 1; display: flex; flex-direction: column; }
         
-        header { position: sticky; top: 0; z-index: 100; background: rgba(247, 244, 239, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 22px 36px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--apple-border); }
+        header { position: sticky; top: 0; z-index: 100; background: rgba(245, 245, 247, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 22px 36px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--apple-border); }
         .brand-title { font-size: 1.5rem; font-weight: 800; color: var(--apple-dark); letter-spacing: -0.035em; text-align: center; width: 100%; }
         .brand-title span { color: var(--apple-blue); }
         .phone-badge { position: absolute; right: 36px; display: inline-flex; align-items: center; gap: 8px; background: var(--card-pure-white); border: 1px solid var(--apple-border); padding: 10px 20px; border-radius: 999px; color: var(--apple-blue); font-size: 0.9rem; font-weight: 700; text-decoration: none; box-shadow: 0 4px 16px rgba(0, 113, 227, 0.05); transition: transform 0.2s ease; cursor: pointer; }
@@ -786,7 +786,7 @@ export default function DentalPage() {
           header {
             padding: calc(12px + var(--ios-safe-top)) 20px 12px 20px;
             justify-content: center !important;
-            background: rgba(247, 244, 239, 0.72);
+            background: rgba(245, 245, 247, 0.72);
             backdrop-filter: saturate(180%) blur(20px);
             -webkit-backdrop-filter: saturate(180%) blur(20px);
             border-bottom: 0.5px solid var(--ios-hairline);
@@ -1080,7 +1080,7 @@ export default function DentalPage() {
             line-height: 1;
           }
 
-          .ai-chat-body { padding: 18px 16px; background: rgba(247, 244, 239, 0.55); }
+          .ai-chat-body { padding: 18px 16px; background: rgba(245, 245, 247, 0.55); }
           .ai-msg { border-radius: 18px; }
           .ai-bot { background: rgba(255, 255, 255, 0.92); border: 0.5px solid var(--ios-hairline); border-bottom-left-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
           .ai-user { background: linear-gradient(180deg, #1a8cff 0%, #0071e3 100%); border-bottom-right-radius: 6px; }
@@ -1134,15 +1134,70 @@ export default function DentalPage() {
 
         .ai-chat-body { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; scroll-behavior: smooth; }
         .half-form-drawer { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
-      `}</style>
 
-      <header>
-        <div className="brand-title">SmileWay<span>Studio</span></div>
-        <a href="tel:5552347890" className="phone-badge">
-          <span className="status-dot-green"></span>
-          <span>(555) 234-7890</span>
-        </a>
-      </header>
+        /* =====================================================================
+           REFINED CORNERS  (modern, slightly sharper — no pill / circular look)
+           Mobile full-bleed cards keep their "border-radius: 0 !important".
+           ===================================================================== */
+        .doctor-card, .stat-pill, .consult-card, .review-bubble, .case-card-stream,
+        .extra-feature-card, .faq-item, .map-preview-card { border-radius: 6px; }
+        .hero-box { border-radius: 8px; }
+        .case-photo-slot { border-radius: 4px; }
+
+        .h-pill, .hero-pill-cluster .h-pill, .acc-badge, .doc-tag,
+        .slots-pill, .consult-card .slots-pill { border-radius: 8px; }
+        .guarantee-strip { border-radius: 8px; }
+        .hero-cta-btn, .btn-confirm, .drawer-btn { border-radius: 10px; }
+        .form-input, .drawer-input { border-radius: 8px; }
+        .half-form-drawer { border-radius: 14px 14px 0 0; }
+        .map-floating-badge { border-radius: 10px; }
+        .map-icon-btn { border-radius: 8px; }
+
+        .ai-chat-window { border-radius: 14px; }
+        .ai-msg { border-radius: 12px; }
+        .ai-bot { border-bottom-left-radius: 4px; }
+        .ai-user { border-bottom-right-radius: 4px; }
+        .ai-chat-input, .ai-send-btn { border-radius: 10px; }
+        .chat-calendar-card { border-radius: 10px; }
+        .chat-calendar-input, .chat-calendar-btn { border-radius: 8px; }
+
+        /* =====================================================================
+           CONSULTATION FORM INPUTS : solid, high-contrast, always legible
+           ===================================================================== */
+        .form-input,
+        .consult-card .form-input {
+          background: #ffffff !important;
+          color: #141316 !important;
+          -webkit-text-fill-color: #141316;
+          caret-color: var(--apple-blue);
+          border: 1.5px solid rgba(20, 19, 22, 0.28);
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+          color-scheme: light;
+          font-weight: 500;
+          opacity: 1;
+        }
+        .form-input::placeholder {
+          color: #6e6e73;
+          -webkit-text-fill-color: #6e6e73;
+          opacity: 1;
+        }
+        .form-input:hover { border-color: rgba(20, 19, 22, 0.45); }
+        .form-input:focus,
+        .consult-card .form-input:focus {
+          border-color: var(--apple-blue);
+          box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.16);
+        }
+        .form-input option { color: #141316; background: #ffffff; }
+        .form-input:-webkit-autofill,
+        .form-input:-webkit-autofill:focus {
+          -webkit-text-fill-color: #141316;
+          -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+          box-shadow: 0 0 0 1000px #ffffff inset;
+          transition: background-color 9999s ease-in-out 0s;
+        }
+      `}</style>
 
       <header>
         <div className="brand-title">SmileWay<span>Studio</span></div>
