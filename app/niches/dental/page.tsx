@@ -2,6 +2,18 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { API_ENDPOINTS } from '../../apiEndpoints';
+import { apiRequest, createIdempotencyKey } from '../../lib/apiClient';
+import './motion.css'; // Apple-style spring micro-interactions + Deep Sky Blue glow (presentation only)
+
+type SubmissionKey = { key: string; fingerprint: string };
+
+/** One Idempotency-Key per logical submission: reused for retries of the same payload, renewed if the payload changes. */
+function submissionKeyFor(ref: { current: SubmissionKey | null }, fingerprint: string): string {
+  if (!ref.current || ref.current.fingerprint !== fingerprint) {
+    ref.current = { key: createIdempotencyKey(), fingerprint };
+  }
+  return ref.current.key;
+}
 
 export default function DentalPage() {
   const [mounted, setMounted] = useState(false);
@@ -28,6 +40,15 @@ export default function DentalPage() {
   const chatBodyRef = useRef<HTMLDivElement>(null);
   const heroBoxRef = useRef<HTMLDivElement>(null);
 
+  // Duplicate-submission guards: a synchronous in-flight flag (state updates are async, so a fast double-click
+  // could slip past a state-based check) and one Idempotency-Key per logical submission, reused across retries.
+  const drawerSubmitInFlight = useRef(false);
+  const drawerIdempotencyKey = useRef<SubmissionKey | null>(null);
+  const mainIdempotencyKey = useRef<SubmissionKey | null>(null);
+  const mainSubmitInFlight = useRef(false);
+  const chatSlotInFlight = useRef(false);
+  const chatSlotIdempotencyKey = useRef<SubmissionKey | null>(null);
+
   const [drawerName, setDrawerName] = useState('');
   const [drawerPhone, setDrawerPhone] = useState('');
   const [drawerTreatment, setDrawerTreatment] = useState('Handcrafted Porcelain Veneers');
@@ -45,7 +66,7 @@ export default function DentalPage() {
 
   const triggerHaptic = (pattern: number | number[]) => {
     if (typeof window !== 'undefined' && navigator.vibrate) {
-      try { navigator.vibrate(pattern); } catch (e) {}
+      try { navigator.vibrate(pattern); } catch {}
     }
   };
 
@@ -154,21 +175,21 @@ export default function DentalPage() {
     const track = trackRef.current;
     if (!knob || !track) return;
 
-    let startX = e.clientX;
+    const startX = e.clientX;
     const maxMove = track.clientWidth - knob.clientWidth - 8;
     knob.style.transition = 'none';
 
-    try { knob.setPointerCapture(e.pointerId); } catch(err) {}
+    try { knob.setPointerCapture(e.pointerId); } catch {}
 
     const onPointerMove = (ev: PointerEvent) => {
       const currentX = ev.clientX;
       if (funnelStep === 0) {
-        let delta = currentX - startX;
-        let move = Math.max(0, Math.min(delta, maxMove));
+        const delta = currentX - startX;
+        const move = Math.max(0, Math.min(delta, maxMove));
         knob.style.transform = `translate3d(${move}px, -50%, 0)`;
       } else if (funnelStep === 2) {
-        let delta = startX - currentX;
-        let move = Math.max(0, Math.min(delta, maxMove));
+        const delta = startX - currentX;
+        const move = Math.max(0, Math.min(delta, maxMove));
         knob.style.transform = `translate3d(${maxMove - move}px, -50%, 0)`;
       }
     };
@@ -193,7 +214,7 @@ export default function DentalPage() {
           knob.style.transform = 'translate3d(0, -50%, 0)';
         }
       } else if (funnelStep === 2) {
-        let pulledBackDistance = maxMove - currentTranslateX;
+        const pulledBackDistance = maxMove - currentTranslateX;
         if (pulledBackDistance >= maxMove * 0.35) {
           executeReverseCompletion();
         } else {
@@ -201,7 +222,7 @@ export default function DentalPage() {
           knob.style.transform = `translate3d(${maxMove}px, -50%, 0)`;
         }
       }
-      try { knob.releasePointerCapture(ev.pointerId); } catch(err) {}
+      try { knob.releasePointerCapture(ev.pointerId); } catch {}
     };
 
     knob.addEventListener('pointermove', onPointerMove);
@@ -306,26 +327,31 @@ export default function DentalPage() {
       alert('Please fill in both your name and phone number.');
       return;
     }
+    if (drawerSubmitInFlight.current) return;
+    drawerSubmitInFlight.current = true;
     try {
-      const response = await fetch(API_ENDPOINTS.booking, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          fullName: drawerName.trim(), 
-          phone: drawerPhone.trim(), 
-          treatment: drawerTreatment,
-          niche: 'dental'
-        })
+      const payload = {
+        fullName: drawerName.trim(),
+        phone: drawerPhone.trim(),
+        treatment: drawerTreatment,
+        niche: 'dental'
+      };
+      const result = await apiRequest(API_ENDPOINTS.booking, {
+        body: payload,
+        idempotencyKey: submissionKeyFor(drawerIdempotencyKey, JSON.stringify(payload))
       });
-      const result = await response.json().catch(() => ({}));
-      if (response.ok) {
+      if (result.ok) {
+        drawerIdempotencyKey.current = null;
         alert('Success! Priority appointment slot reserved and universal automations triggered.');
         closeHeroDrawer();
+      } else if (result.networkError) {
+        alert('Server connection failed.'); // key kept: a retry of the same form cannot double-book
       } else {
+        drawerIdempotencyKey.current = null;
         alert('Error: ' + (result.error || 'Something went wrong'));
       }
-    } catch (err) {
-      alert('Server connection failed.');
+    } finally {
+      drawerSubmitInFlight.current = false;
     }
   };
 
@@ -334,7 +360,8 @@ export default function DentalPage() {
       alert('Please fill in your name, phone number, and select a preferred consultation date.');
       return;
     }
-    if (isBookingLoading) return;
+    if (isBookingLoading || mainSubmitInFlight.current) return;
+    mainSubmitInFlight.current = true;
     setIsBookingLoading(true);
     try {
       const treatmentLabels: Record<string, string> = {
@@ -342,27 +369,29 @@ export default function DentalPage() {
         cosmetic: 'Micro-Enamel Bio-Seal',
         roofing: 'Full Arch Smile Alignment',
       };
-      const response = await fetch(API_ENDPOINTS.booking, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          fullName: mainName.trim(), 
-          phone: mainPhone.trim(), 
-          appointmentDate: mainAppointmentDate, 
-          treatment: treatmentLabels[mainTreatment] || mainTreatment, 
-          niche: 'dental'
-        })
+      const payload = {
+        fullName: mainName.trim(),
+        phone: mainPhone.trim(),
+        appointmentDate: mainAppointmentDate,
+        treatment: treatmentLabels[mainTreatment] || mainTreatment,
+        niche: 'dental'
+      };
+      const result = await apiRequest(API_ENDPOINTS.booking, {
+        body: payload,
+        idempotencyKey: submissionKeyFor(mainIdempotencyKey, JSON.stringify(payload))
       });
-      const result = await response.json().catch(() => ({}));
-      if (response.ok) {
+      if (result.ok) {
+        mainIdempotencyKey.current = null;
         alert('Priority Consultation Confirmed & Enterprise Automations Active!');
         setMainName(''); setMainPhone(''); setMainAppointmentDate('');
+      } else if (result.networkError) {
+        alert('Server connection failed.');
       } else {
+        mainIdempotencyKey.current = null;
         alert('Error: ' + (result.error || 'Booking could not be finalized'));
       }
-    } catch (err) {
-      alert('Server connection failed.');
     } finally {
+      mainSubmitInFlight.current = false;
       setIsBookingLoading(false);
     }
   };
@@ -389,25 +418,24 @@ export default function DentalPage() {
 
     setIsChatLoading(true);
     try {
-      const response = await fetch(API_ENDPOINTS.aiChat, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: text, 
-          niche: 'dental', 
-          brandName: 'SmileWay Studio', 
+      const result = await apiRequest<{ reply?: string }>(API_ENDPOINTS.aiChat, {
+        body: {
+          message: text,
+          niche: 'dental',
+          brandName: 'SmileWay Studio',
           expertName: 'Dr. Julian Vance, DDS',
           history
-        })
+        },
+        timeoutMs: 20000,
+        retries: 1
       });
-      const result = await response.json().catch(() => ({}));
-      const replyText = (result && result.reply) ? result.reply : "Hey there! Welcome to SmileWay Studio. How can I help you out today?";
+      const replyText = (result.ok && result.data?.reply) ? result.data.reply : "Hey there! Welcome to SmileWay Studio. How can I help you out today?";
       
       setChatMessages(prev => [...prev, { sender: 'bot', text: replyText }]);
       if (wantsBooking) {
         setTimeout(() => setShowCalendarWidget(true), 600);
       }
-    } catch (error) {
+    } catch {
       setChatMessages(prev => [...prev, { sender: 'bot', text: "Hey! Thanks for reaching out. Would you like me to grab a quick time slot for a chat?" }]);
     } finally {
       setIsChatLoading(false);
@@ -419,27 +447,32 @@ export default function DentalPage() {
       alert('Please pick a date and time slot.');
       return;
     }
+    if (chatSlotInFlight.current) return;
+    chatSlotInFlight.current = true;
     setChatSlotStatus({ text: 'Syncing appointment...', color: '#0071e3' });
     try {
-      const response = await fetch(API_ENDPOINTS.booking, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          fullName: 'Concierge Web Guest', 
-          phone: '+15552347890', 
-          appointmentDate: chatSlot,
-          treatment: 'Handcrafted Porcelain Veneers',
-          niche: 'dental'
-        })
+      const payload = {
+        fullName: 'Concierge Web Guest',
+        phone: '+15552347890',
+        appointmentDate: chatSlot,
+        treatment: 'Handcrafted Porcelain Veneers',
+        niche: 'dental'
+      };
+      const result = await apiRequest(API_ENDPOINTS.booking, {
+        body: payload,
+        idempotencyKey: submissionKeyFor(chatSlotIdempotencyKey, JSON.stringify(payload))
       });
-      const resData = await response.json().catch(() => ({}));
-      if (response.ok) {
+      if (result.ok) {
+        chatSlotIdempotencyKey.current = null;
         setChatSlotStatus({ text: '✓ VIP Slot Confirmed!', color: '#34c759' });
+      } else if (result.networkError) {
+        setChatSlotStatus({ text: 'Connection error.', color: '#dc2626' });
       } else {
+        chatSlotIdempotencyKey.current = null;
         setChatSlotStatus({ text: 'Could not reserve slot.', color: '#dc2626' });
       }
-    } catch (err) {
-      setChatSlotStatus({ text: 'Connection error.', color: '#dc2626' });
+    } finally {
+      chatSlotInFlight.current = false;
     }
   };
 
@@ -451,7 +484,6 @@ export default function DentalPage() {
     let scrollX = 0;
     let velocity = baseSpeed;
     let isDragging = false;
-    let startX = 0;
     let startY = 0;
     let lastX = 0;
     let lastTime = Date.now();
@@ -476,12 +508,11 @@ export default function DentalPage() {
     box.addEventListener('pointerdown', (e) => {
       isDragging = true;
       isVerticalIntent = false;
-      startX = e.clientX;
       startY = e.clientY;
       lastX = e.clientX;
       lastTime = Date.now();
       box.style.cursor = 'grabbing';
-      try { box.setPointerCapture(e.pointerId); } catch(err){}
+      try { box.setPointerCapture(e.pointerId); } catch {}
     });
 
     box.addEventListener('pointermove', (e) => {
@@ -513,7 +544,7 @@ export default function DentalPage() {
       if (!isDragging) return;
       isDragging = false;
       box.style.cursor = 'grab';
-      try { box.releasePointerCapture(e.pointerId); } catch(err){}
+      try { box.releasePointerCapture(e.pointerId); } catch {}
     };
 
     box.addEventListener('pointerup', endDrag);
@@ -1368,15 +1399,15 @@ C:\Users\Administrator\Desktop\all landing pages AND BACKEND\landing-page-dental
             <div className="infinite-marquee-inner" ref={reviewsInnerRef}>
               <div className="review-bubble service-trigger-btn" data-topic="Veneers Patient Review">
                 <div className="rev-head"><span className="rev-name">Elena R. <span style={{color:'var(--apple-blue)'}}>✓ Verified</span></span><span style={{color:'#ff9500', fontSize: '0.85rem'}}>★★★★★</span></div>
-                <p className="rev-quote">"Got my veneers done here. 100% pain-free and natural white. Transformed my self-confidence completely!"</p>
+                <p className="rev-quote">&quot;Got my veneers done here. 100% pain-free and natural white. Transformed my self-confidence completely!&quot;</p>
               </div>
               <div className="review-bubble service-trigger-btn" data-topic="Same-Day Triage Review">
                 <div className="rev-head"><span className="rev-name">Marcus T. <span style={{color:'var(--apple-blue)'}}>✓ Verified</span></span><span style={{color:'#ff9500', fontSize: '0.85rem'}}>★★★★★</span></div>
-                <p className="rev-quote">"Dr. Vance is an absolute artist. Same-day triage and the precision mapping blew my mind."</p>
+                <p className="rev-quote">&quot;Dr. Vance is an absolute artist. Same-day triage and the precision mapping blew my mind.&quot;</p>
               </div>
               <div className="review-bubble service-trigger-btn" data-topic="Private Clinic Experience Review">
                 <div className="rev-head"><span className="rev-name">Sophia L. <span style={{color:'var(--apple-blue)'}}>✓ Verified</span></span><span style={{color:'#ff9500', fontSize: '0.85rem'}}>★★★★★</span></div>
-                <p className="rev-quote">"World-class private clinic experience. Zero dentin sensitivity and an effortless radiant smile."</p>
+                <p className="rev-quote">&quot;World-class private clinic experience. Zero dentin sensitivity and an effortless radiant smile.&quot;</p>
               </div>
             </div>
           </div>
@@ -1440,7 +1471,7 @@ C:\Users\Administrator\Desktop\all landing pages AND BACKEND\landing-page-dental
             </div>
             <div className="faq-item">
               <button className="faq-question" onClick={toggleFaq}>
-                <span>What makes SmileWay Studio's private VIP suites different?</span>
+                <span>What makes SmileWay Studio&apos;s private VIP suites different?</span>
                 <span className="faq-chevron">+</span>
               </button>
               <div className="faq-answer">

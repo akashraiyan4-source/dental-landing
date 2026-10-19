@@ -1,0 +1,249 @@
+/*
+ * Dental landing page – Apple-style motion layer (presentation only).
+ *
+ *   1. Smooth / momentum scrolling support (driven by app/lib/SmoothScroll.tsx)
+ *   2. Spring (bouncy) hover + press micro-interactions for cards and buttons
+ *   3. Deep Sky Blue ambient glow shadows on hover / press / focus
+ *
+ * Selectors are prefixed with `body` so they reliably out-rank the page's inline <style jsx> rules
+ * regardless of stylesheet order. Springs use the independent `translate` / `scale` properties, so they
+ * never fight existing `transform` rules (e.g. the AI button's rotation).
+ */
+
+:root {
+  /* Deep Sky Blue (#00BFFF) core + a slightly deeper tone so the glow stays visible on the light page. */
+  --sky-core: 0, 191, 255;
+  --sky-deep: 0, 150, 255;
+
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-soft: cubic-bezier(0.22, 1.35, 0.36, 1);
+
+  --sky-glow-card:
+    0 0 0 1px rgba(var(--sky-core), 0.30),
+    0 18px 44px -8px rgba(var(--sky-deep), 0.38),
+    0 0 72px 6px rgba(var(--sky-core), 0.24);
+  --sky-glow-btn:
+    0 0 0 5px rgba(var(--sky-core), 0.14),
+    0 14px 34px -4px rgba(var(--sky-deep), 0.50),
+    0 0 52px 4px rgba(var(--sky-core), 0.38);
+  --sky-glow-press:
+    0 0 0 1px rgba(var(--sky-core), 0.35),
+    0 6px 20px -4px rgba(var(--sky-deep), 0.42),
+    0 0 40px 2px rgba(var(--sky-core), 0.28);
+}
+
+/* ------------------------------------------------------------------ 1. Smooth scrolling */
+
+html.lenis,
+html.lenis body { height: auto; }
+/* Lenis owns wheel + anchor easing; native smooth-scroll on top of it would fight the glide. */
+html.lenis { scroll-behavior: auto !important; }
+html.lenis.lenis-stopped { overflow: clip; }
+
+/* iOS: allow the native elastic rubber-band at the page ends (the page previously disabled it on mobile). */
+@supports (-webkit-touch-callout: none) {
+  :root, :root body { overscroll-behavior-y: auto; }
+}
+
+/* ------------------------------------------------------------------ 2 + 3. Spring + sky glow */
+
+/* Shared spring transition */
+body .doctor-card,
+body .extra-feature-card,
+body .review-bubble,
+body .case-card-stream,
+body .stat-pill,
+body .acc-badge,
+body .faq-item,
+body .consult-card,
+body .map-preview-card,
+body .chat-calendar-card,
+body .h-pill,
+body .hero-cta-btn,
+body .btn-confirm,
+body .drawer-btn,
+body .ai-send-btn,
+body .phone-badge,
+body .map-icon-btn,
+body .chat-calendar-btn,
+body .glass-sound-btn {
+  transition:
+    translate 0.6s var(--spring),
+    scale 0.6s var(--spring),
+    transform 0.6s var(--spring),
+    box-shadow 0.45s ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* The AI launcher keeps its own rotate transition (`transform`) – add the spring on top. */
+body .floating-ai {
+  transition:
+    transform 0.4s ease,
+    translate 0.6s var(--spring),
+    scale 0.6s var(--spring),
+    box-shadow 0.45s ease;
+}
+
+/* Cards that share a framed look need a visible glow outside overflow-hidden marquee frames. */
+body .infinite-marquee-box,
+body .interactive-cases-box {
+  overflow: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+/* ---- Hover (mouse / trackpad only, so touch devices never get "sticky" hover) ---- */
+@media (hover: hover) and (pointer: fine) {
+  body .doctor-card:hover,
+  body .extra-feature-card:hover,
+  body .review-bubble:hover,
+  body .case-card-stream:hover {
+    transform: none;
+    translate: 0 -8px;
+    scale: 1.025;
+    border-color: rgba(var(--sky-core), 0.55);
+    box-shadow: var(--sky-glow-card);
+  }
+
+  body .stat-pill:hover,
+  body .faq-item:hover {
+    transform: none;
+    translate: 0 -5px;
+    scale: 1.02;
+    border-color: rgba(var(--sky-core), 0.5);
+    box-shadow: var(--sky-glow-card);
+  }
+
+  /* Large form / map cards: glow + a barely-there lift (no scaling, so inputs never shift under the cursor) */
+  body .consult-card:hover,
+  body .map-preview-card:hover {
+    transform: none;
+    translate: 0 -3px;
+    border-color: rgba(var(--sky-core), 0.5);
+    box-shadow: var(--sky-glow-card);
+  }
+
+  body .chat-calendar-card:hover {
+    translate: 0 -3px;
+    box-shadow: var(--sky-glow-card);
+  }
+
+  body .h-pill:hover,
+  body .acc-badge:hover {
+    transform: none;
+    translate: 0 -4px;
+    scale: 1.06;
+    border-color: rgba(var(--sky-core), 0.6);
+    box-shadow: var(--sky-glow-btn);
+  }
+
+  body .hero-cta-btn:hover,
+  body .btn-confirm:hover,
+  body .drawer-btn:hover,
+  body .ai-send-btn:hover,
+  body .phone-badge:hover,
+  body .chat-calendar-btn:hover {
+    transform: none;
+    translate: 0 -4px;
+    scale: 1.05;
+    box-shadow: var(--sky-glow-btn);
+  }
+
+  body .map-icon-btn:hover,
+  body .glass-sound-btn:hover {
+    transform: none;
+    translate: 0 -2px;
+    scale: 1.12;
+    box-shadow: var(--sky-glow-btn);
+  }
+
+  body .floating-ai:hover {
+    scale: 1.1;
+    box-shadow: var(--sky-glow-btn), 0 12px 32px rgba(0, 0, 0, 0.18);
+  }
+}
+
+/* ---- Press / touch (works for fingers and mouse clicks): squish in, spring back out ---- */
+body .doctor-card:active,
+body .extra-feature-card:active,
+body .review-bubble:active,
+body .case-card-stream:active,
+body .stat-pill:active,
+body .acc-badge:active,
+body .faq-item:active,
+body .h-pill:active,
+body .hero-cta-btn:active,
+body .btn-confirm:active,
+body .drawer-btn:active,
+body .ai-send-btn:active,
+body .phone-badge:active,
+body .map-icon-btn:active,
+body .chat-calendar-btn:active,
+body .glass-sound-btn:active,
+body .floating-ai:active {
+  transform: none;
+  translate: 0 0;
+  scale: 0.96;
+  box-shadow: var(--sky-glow-press);
+  transition-duration: 0.12s, 0.12s, 0.12s, 0.2s, 0.2s, 0.2s, 0.2s;
+}
+
+/* Full-bleed iOS-style cells on phones: a gentler squish so they don't reveal the page edge */
+@media (max-width: 768px) {
+  body .doctor-card:active,
+  body .extra-feature-card:active,
+  body .review-bubble:active,
+  body .case-card-stream:active,
+  body .faq-item:active { scale: 0.985; }
+}
+
+/* ---- Keyboard / form focus gets the same sky glow ---- */
+body .consult-card:focus-within,
+body .half-form-drawer:focus-within {
+  box-shadow: var(--sky-glow-card);
+}
+body .hero-cta-btn:focus-visible,
+body .btn-confirm:focus-visible,
+body .drawer-btn:focus-visible,
+body .ai-send-btn:focus-visible,
+body .h-pill:focus-visible,
+body .faq-question:focus-visible {
+  outline: none;
+  box-shadow: var(--sky-glow-btn);
+}
+body .form-input:focus,
+body .drawer-input:focus,
+body .ai-chat-input:focus,
+body .chat-calendar-input:focus {
+  border-color: rgba(var(--sky-core), 0.9);
+  box-shadow: 0 0 0 4px rgba(var(--sky-core), 0.18), 0 10px 30px -6px rgba(var(--sky-deep), 0.35);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* ---- Accessibility: keep the glow, drop the movement ---- */
+@media (prefers-reduced-motion: reduce) {
+  body .doctor-card,
+  body .extra-feature-card,
+  body .review-bubble,
+  body .case-card-stream,
+  body .stat-pill,
+  body .acc-badge,
+  body .faq-item,
+  body .consult-card,
+  body .map-preview-card,
+  body .h-pill,
+  body .hero-cta-btn,
+  body .btn-confirm,
+  body .drawer-btn,
+  body .ai-send-btn,
+  body .phone-badge,
+  body .map-icon-btn,
+  body .glass-sound-btn,
+  body .floating-ai {
+    translate: 0 0 !important;
+    scale: 1 !important;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease !important;
+  }
+}

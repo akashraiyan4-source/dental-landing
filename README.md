@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SmileWay Studio – Dental Landing Page
 
-## Getting Started
+Next.js 16 (App Router) landing page. All forms and the AI concierge talk to the **Universal Backend**
+(`automation backend`); the only per-niche input is `niche: 'dental'` in each request body.
 
-First, run the development server:
+## Quick start
 
 ```bash
+npm install
+cp .env.example .env.local     # set NEXT_PUBLIC_BACKEND_URL (optional – defaults to production)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Script | Purpose |
+| --- | --- |
+| `npm run check` | `tsc --noEmit` + ESLint |
+| `npm run build` | Production build |
+| `npm run smoke` | Read-only contract/CORS smoke test against the backend (`BACKEND_URL=... npm run smoke`) |
+| `npm run audit:prod` | Fails on critical production advisories |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/apiEndpoints.ts` – single source of truth for backend URLs (validated `NEXT_PUBLIC_BACKEND_URL`).
+- `app/lib/apiClient.ts` – never-throwing JSON client: timeout, safe retries with backoff, `Retry-After`,
+  `Idempotency-Key`, understands `{ success, data, error }` and the legacy response shape.
+- Booking submissions reuse one `Idempotency-Key` per logical submission (new key if the form content changes),
+  plus in-flight guards, so double-clicks and network retries can never double-book.
+- `next.config.js` – site-wide security headers (CSP restricted to first-party, Unsplash, Google Maps and the backend
+  origin; HSTS in production; `frame-ancestors 'none'`; Permissions-Policy; no `X-Powered-By`).
+- `proxy.ts` – Next 16 successor of `middleware.ts`: method allow-list (GET/HEAD/OPTIONS) + request id.
+  Rate limiting, validation and CORS are enforced by the backend.
 
-## Learn More
+## Deployment (Vercel)
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Set `NEXT_PUBLIC_BACKEND_URL` to the backend's URL.
+2. On the **backend**, add this site's origin to `ALLOWED_ORIGINS` – otherwise browsers are blocked (CORS is fail-closed).
+3. If the site must be embedded in an iframe elsewhere, relax `frame-ancestors` / `X-Frame-Options` in `next.config.js`.
