@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+import { API_ENDPOINTS } from '@/app/apiEndpoints';
 
 export default function DentalPage() {
   const [mounted, setMounted] = useState(false);
@@ -308,7 +307,7 @@ export default function DentalPage() {
       return;
     }
     try {
-      const response = await fetch(`${API_BASE}/api/booking/create`, {
+      const response = await fetch(API_ENDPOINTS.appointmentCreate, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -343,7 +342,7 @@ export default function DentalPage() {
         cosmetic: 'Micro-Enamel Bio-Seal',
         roofing: 'Full Arch Smile Alignment',
       };
-      const response = await fetch(`${API_BASE}/api/booking/create`, {
+      const response = await fetch(API_ENDPOINTS.appointmentCreate, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -390,7 +389,7 @@ export default function DentalPage() {
 
     setIsChatLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/api/ai-chat`, {
+      const response = await fetch(API_ENDPOINTS.aiChat, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -422,7 +421,7 @@ export default function DentalPage() {
     }
     setChatSlotStatus({ text: 'Syncing appointment...', color: '#0071e3' });
     try {
-      const response = await fetch(`${API_BASE}/api/booking/create`, {
+      const response = await fetch(API_ENDPOINTS.appointmentCreate, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1135,10 +1134,6 @@ export default function DentalPage() {
         .ai-chat-body { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; scroll-behavior: smooth; }
         .half-form-drawer { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
 
-        /* =====================================================================
-           REFINED CORNERS  (modern, slightly sharper — no pill / circular look)
-           Mobile full-bleed cards keep their "border-radius: 0 !important".
-           ===================================================================== */
         .doctor-card, .stat-pill, .consult-card, .review-bubble, .case-card-stream,
         .extra-feature-card, .faq-item, .map-preview-card { border-radius: 6px; }
         .hero-box { border-radius: 8px; }
@@ -1161,9 +1156,6 @@ export default function DentalPage() {
         .chat-calendar-card { border-radius: 10px; }
         .chat-calendar-input, .chat-calendar-btn { border-radius: 8px; }
 
-        /* =====================================================================
-           CONSULTATION FORM INPUTS : solid, high-contrast, always legible
-           ===================================================================== */
         .form-input,
         .consult-card .form-input {
           background: #ffffff !important;
@@ -1281,7 +1273,7 @@ export default function DentalPage() {
               <h3 className="drawer-title">Claim Your Confidence</h3>
               <p className="drawer-sub">Direct senior cosmetic triage confirmed via backend.</p>
             </div>
-            <input type="post" value={drawerName} onChange={e => setDrawerName(e.target.value)} className="drawer-input" placeholder="Your Full Name" />
+            <input type="text" value={drawerName} onChange={e => setDrawerName(e.target.value)} className="drawer-input" placeholder="Your Full Name" />
             <input type="tel" value={drawerPhone} onChange={e => setDrawerPhone(e.target.value)} className="drawer-input" placeholder="Direct Phone (SMS Enabled)" />
             <select value={drawerTreatment} onChange={e => setDrawerTreatment(e.target.value)} className="drawer-input">
               <option value="Handcrafted Porcelain Veneers">Handcrafted Porcelain Veneers</option>
