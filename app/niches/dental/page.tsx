@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { API_ENDPOINTS } from '@/app/apiEndpoints';
+import { API_ENDPOINTS } from '../../apiEndpoints';
 
 export default function DentalPage() {
   const [mounted, setMounted] = useState(false);
