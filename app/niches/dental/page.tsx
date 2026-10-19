@@ -307,7 +307,7 @@ export default function DentalPage() {
       return;
     }
     try {
-      const response = await fetch(API_ENDPOINTS.appointmentCreate, {
+      const response = await fetch(API_ENDPOINTS.booking, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -342,7 +342,7 @@ export default function DentalPage() {
         cosmetic: 'Micro-Enamel Bio-Seal',
         roofing: 'Full Arch Smile Alignment',
       };
-      const response = await fetch(API_ENDPOINTS.appointmentCreate, {
+      const response = await fetch(API_ENDPOINTS.booking, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -421,7 +421,7 @@ export default function DentalPage() {
     }
     setChatSlotStatus({ text: 'Syncing appointment...', color: '#0071e3' });
     try {
-      const response = await fetch(API_ENDPOINTS.appointmentCreate, {
+      const response = await fetch(API_ENDPOINTS.booking, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1032,7 +1032,7 @@ export default function DentalPage() {
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
           }
 
-          .ai-chat-modal {
+C:\Users\Administrator\Desktop\all landing pages AND BACKEND\landing-page-dental>          .ai-chat-modal {
             left: 12px !important;
             right: 12px !important;
             bottom: calc(92px + var(--ios-safe-bottom)) !important;
