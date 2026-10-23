@@ -7,6 +7,15 @@ import './motion.css'; // Apple-style spring micro-interactions + Deep Sky Blue 
 
 type SubmissionKey = { key: string; fingerprint: string };
 
+const INITIAL_CHAT_GREETING = 'Welcome to SmileWay Studio. How may I assist with your Beverly Hills aesthetic smile preview today?';
+const TYPING_PLACEHOLDER = '…';
+
+/** Only used when the backend cannot be reached at all; the backend itself always answers with a context-aware reply. */
+function offlineChatReply(topic?: string | null): string {
+  const subject = topic ? `our ${topic}` : 'your smile goals';
+  return `I'd love to walk you through ${subject}, but I can't reach our concierge desk at the moment. Please call (555) 234-7890 or use the booking form on this page and our team will take care of you right away.`;
+}
+
 /** One Idempotency-Key per logical submission: reused for retries of the same payload, renewed if the payload changes. */
 function submissionKeyFor(ref: { current: SubmissionKey | null }, fingerprint: string): string {
   if (!ref.current || ref.current.fingerprint !== fingerprint) {
@@ -22,12 +31,15 @@ export default function DentalPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'bot', text: 'Welcome to SmileWay Studio. How may I assist with your Beverly Hills aesthetic smile preview today?' }
+    { sender: 'bot', text: INITIAL_CHAT_GREETING }
   ]);
   const [userInput, setUserInput] = useState('');
   const [showCalendarWidget, setShowCalendarWidget] = useState(false);
   const [chatSlot, setChatSlot] = useState('');
+  const [chatSlotName, setChatSlotName] = useState('');
+  const [chatSlotPhone, setChatSlotPhone] = useState('');
   const [chatSlotStatus, setChatSlotStatus] = useState({ text: '', color: '' });
+  const [isChatSlotConfirmed, setIsChatSlotConfirmed] = useState(false);
 
   const vidStartRef = useRef<HTMLVideoElement>(null);
   const vidTransRef = useRef<HTMLVideoElement>(null);
@@ -40,8 +52,9 @@ export default function DentalPage() {
   const chatBodyRef = useRef<HTMLDivElement>(null);
   const heroBoxRef = useRef<HTMLDivElement>(null);
 
-  // Duplicate-submission guards: a synchronous in-flight flag (state updates are async, so a fast double-click
-  // could slip past a state-based check) and one Idempotency-Key per logical submission, reused across retries.
+  const chatMessagesRef = useRef<{ sender: string; text: string }[]>([]);
+  const activeTopicRef = useRef<string | null>(null); 
+  const topicRequestRef = useRef<string | null>(null); 
   const drawerSubmitInFlight = useRef(false);
   const drawerIdempotencyKey = useRef<SubmissionKey | null>(null);
   const mainIdempotencyKey = useRef<SubmissionKey | null>(null);
@@ -89,22 +102,50 @@ export default function DentalPage() {
     initInertialMarquee('reviewsBox', reviewsInnerRef, 0.6);
     initInertialMarquee('casesBox', casesInnerRef, 0.5);
 
-    const triggerButtons = document.querySelectorAll('.service-trigger-btn');
-    triggerButtons.forEach(btn => {
-      const handleClick = async (e: Event) => {
+    const openTopicConversation = async (topic: string) => {
+      if (topicRequestRef.current === topic) return;
+      if (activeTopicRef.current === topic && chatMessagesRef.current.length > 0) return;
+      topicRequestRef.current = topic;
+      activeTopicRef.current = topic;
+
+      setChatMessages(prev =>
+        prev.length === 1 && prev[0].text === INITIAL_CHAT_GREETING
+          ? [{ sender: 'bot', text: TYPING_PLACEHOLDER }]
+          : [...prev, { sender: 'bot', text: TYPING_PLACEHOLDER }]
+      );
+      setIsChatLoading(true);
+
+      const messages = chatMessagesRef.current;
+      const hasUserTurn = messages.some(m => m.sender === 'user');
+      const history = hasUserTurn ? messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text })) : [];
+
+      const result = await apiRequest<{ reply?: string }>(API_ENDPOINTS.aiChat, {
+        body: { niche: 'dental', selectedTopic: topic, history },
+        timeoutMs: 20000,
+        retries: 1
+      });
+      const reply = result.ok && result.data?.reply ? result.data.reply : offlineChatReply(topic);
+
+      setChatMessages(prev => {
+        const index = prev.map(m => m.text).lastIndexOf(TYPING_PLACEHOLDER);
+        if (index === -1) return [...prev, { sender: 'bot', text: reply }];
+        return prev.map((m, i) => (i === index ? { sender: 'bot', text: reply } : m));
+      });
+      setIsChatLoading(false);
+      topicRequestRef.current = null;
+    };
+
+    const topicListeners: Array<[Element, EventListener]> = [];
+    document.querySelectorAll('.service-trigger-btn').forEach(btn => {
+      const handleClick = (e: Event) => {
         e.preventDefault();
         e.stopImmediatePropagation();
         const topic = (e.currentTarget as HTMLElement).getAttribute('data-topic') || 'dental consultation';
-
         setIsChatOpen(true);
-        const proactiveMsg = `Welcome to SmileWay Studio. Thank you for your interest in our luxury ${topic}. Our bespoke treatments are tailored to your exact facial harmony. Would you like me to guide you through the details or secure a confidential VIP consultation with Dr. Julian Vance?`;
-        
-        setChatMessages(prev => {
-          if (prev[prev.length - 1]?.text === proactiveMsg) return prev;
-          return [...prev, { sender: 'bot', text: proactiveMsg }];
-        });
+        void openTopicConversation(topic);
       };
       btn.addEventListener('click', handleClick, { capture: true });
+      topicListeners.push([btn, handleClick]);
     });
 
     const handleScrollMute = () => {
@@ -139,14 +180,19 @@ export default function DentalPage() {
 
     return () => {
       window.removeEventListener('scroll', handleScrollMute);
+      topicListeners.forEach(([el, handler]) => el.removeEventListener('click', handler, { capture: true }));
     };
   }, [isMuted, mounted]);
+
+  useEffect(() => {
+    chatMessagesRef.current = chatMessages;
+  }, [chatMessages]);
 
   useEffect(() => {
     if (chatBodyRef.current) {
       chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
     }
-  }, [chatMessages, showCalendarWidget]);
+  }, [chatMessages, showCalendarWidget, isChatSlotConfirmed]);
 
   if (!mounted) return null;
 
@@ -345,7 +391,7 @@ export default function DentalPage() {
         alert('Success! Priority appointment slot reserved and universal automations triggered.');
         closeHeroDrawer();
       } else if (result.networkError) {
-        alert('Server connection failed.'); // key kept: a retry of the same form cannot double-book
+        alert('Server connection failed.');
       } else {
         drawerIdempotencyKey.current = null;
         alert('Error: ' + (result.error || 'Something went wrong'));
@@ -424,19 +470,20 @@ export default function DentalPage() {
           niche: 'dental',
           brandName: 'SmileWay Studio',
           expertName: 'Dr. Julian Vance, DDS',
+          ...(activeTopicRef.current ? { selectedTopic: activeTopicRef.current } : {}),
           history
         },
         timeoutMs: 20000,
         retries: 1
       });
-      const replyText = (result.ok && result.data?.reply) ? result.data.reply : "Hey there! Welcome to SmileWay Studio. How can I help you out today?";
+      const replyText = (result.ok && result.data?.reply) ? result.data.reply : offlineChatReply(activeTopicRef.current);
       
       setChatMessages(prev => [...prev, { sender: 'bot', text: replyText }]);
-      if (wantsBooking) {
+      if (wantsBooking && !isChatSlotConfirmed) {
         setTimeout(() => setShowCalendarWidget(true), 600);
       }
     } catch {
-      setChatMessages(prev => [...prev, { sender: 'bot', text: "Hey! Thanks for reaching out. Would you like me to grab a quick time slot for a chat?" }]);
+      setChatMessages(prev => [...prev, { sender: 'bot', text: offlineChatReply(activeTopicRef.current) }]);
     } finally {
       setIsChatLoading(false);
     }
@@ -447,13 +494,17 @@ export default function DentalPage() {
       alert('Please pick a date and time slot.');
       return;
     }
+    if (!chatSlotName.trim() || !chatSlotPhone.trim()) {
+      alert('Please fill in your name and phone number.');
+      return;
+    }
     if (chatSlotInFlight.current) return;
     chatSlotInFlight.current = true;
     setChatSlotStatus({ text: 'Syncing appointment...', color: '#0071e3' });
     try {
       const payload = {
-        fullName: 'Concierge Web Guest',
-        phone: '+15552347890',
+        fullName: chatSlotName.trim(),
+        phone: chatSlotPhone.trim(),
         appointmentDate: chatSlot,
         treatment: 'Handcrafted Porcelain Veneers',
         niche: 'dental'
@@ -465,6 +516,8 @@ export default function DentalPage() {
       if (result.ok) {
         chatSlotIdempotencyKey.current = null;
         setChatSlotStatus({ text: '✓ VIP Slot Confirmed!', color: '#34c759' });
+        setIsChatSlotConfirmed(true);
+        setShowCalendarWidget(false); // বুকিং সাকসেসফুল হলে ফর্ম গায়েব হয়ে যাবে
       } else if (result.networkError) {
         setChatSlotStatus({ text: 'Connection error.', color: '#dc2626' });
       } else {
@@ -1063,7 +1116,7 @@ export default function DentalPage() {
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
           }
 
-C:\Users\Administrator\Desktop\all landing pages AND BACKEND\landing-page-dental>          .ai-chat-modal {
+          .ai-chat-modal {
             left: 12px !important;
             right: 12px !important;
             bottom: calc(92px + var(--ios-safe-bottom)) !important;
@@ -1559,12 +1612,23 @@ C:\Users\Administrator\Desktop\all landing pages AND BACKEND\landing-page-dental
                 {msg.text}
               </div>
             ))}
-            {showCalendarWidget && (
+            
+            {/* ডায়নামিক বুকিং উইজেট (শর্ত সাপেক্ষে আসবে এবং বুকিং হয়ে গেলে গায়েব হয়ে যাবে) */}
+            {showCalendarWidget && !isChatSlotConfirmed && (
               <div className="chat-calendar-card">
                 <div className="chat-calendar-title">📅 Reserve Priority Consultation Slot</div>
                 <input type="datetime-local" value={chatSlot} onChange={e => setChatSlot(e.target.value)} className="chat-calendar-input" />
+                <input type="text" value={chatSlotName} onChange={e => setChatSlotName(e.target.value)} className="chat-calendar-input" placeholder="Enter your full name" />
+                <input type="tel" value={chatSlotPhone} onChange={e => setChatSlotPhone(e.target.value)} className="chat-calendar-input" placeholder="Enter your phone number" />
                 <button className="chat-calendar-btn" onClick={confirmChatSlot}>Confirm Slot Reservation</button>
                 {chatSlotStatus.text && <p style={{ fontSize: '0.78rem', marginTop: '6px', fontWeight: 600, color: chatSlotStatus.color }}>{chatSlotStatus.text}</p>}
+              </div>
+            )}
+
+            {/* সফল বুকিংয়ের পর চ্যাটের নিচে পার্মানেন্ট ব্যাজ */}
+            {isChatSlotConfirmed && (
+              <div style={{ alignSelf: 'flex-start', background: '#f2faf4', border: '1px solid #d1edd8', borderRadius: '8px', padding: '10px 14px', fontSize: '0.85rem', fontWeight: 700, color: '#248a3d', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>✓ VIP Slot Confirmed!</span>
               </div>
             )}
           </div>
