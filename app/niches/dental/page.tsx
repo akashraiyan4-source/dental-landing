@@ -517,7 +517,7 @@ export default function DentalPage() {
         chatSlotIdempotencyKey.current = null;
         setChatSlotStatus({ text: '✓ VIP Slot Confirmed!', color: '#34c759' });
         setIsChatSlotConfirmed(true);
-        setShowCalendarWidget(false); // বুকিং সাকসেসফুল হলে ফর্ম গায়েব হয়ে যাবে
+        setShowCalendarWidget(false); // বুকিং সাকসেসফুল হলে ফর্ম গায়েব হয়ে যাবে
       } else if (result.networkError) {
         setChatSlotStatus({ text: 'Connection error.', color: '#dc2626' });
       } else {
@@ -606,7 +606,7 @@ export default function DentalPage() {
   }
 
   return (
-    <div className="app-shell" style={{ position: 'relative', overflowX: 'hidden' }}>
+    <div className="app-shell" style={{ position: 'relative', overflowX: 'hidden', userSelect: 'text', WebkitUserSelect: 'text' }}>
       <div className="ambient-bg-container">
         <video className="ambient-bg-video" src="/niches/dental/start.mp4" autoPlay muted loop playsInline preload="auto" poster="/niches/dental/start-poster.jpg"></video>
         <div className="ambient-bg-overlay"></div>
@@ -622,8 +622,29 @@ export default function DentalPage() {
           --apple-blue: #0071e3;
           --card-bg: #ffffff;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent !important; user-select: none !important; }
-        input, select, textarea, button { user-select: auto !important; }
+        
+        /* সমস্ত টেক্সট সিলেক্ট এবং কপি করার জন্য ওভাররাইড */
+        *, *::before, *::after, html, body, .app-shell, .app-shell *, .ai-chat-modal, .ai-chat-modal *, .ai-msg {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          -webkit-tap-highlight-color: rgba(0, 113, 227, 0.15) !important;
+          user-select: text !important;
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          -ms-user-select: text !important;
+        }
+        
+        input, select, textarea, button {
+          user-select: text !important;
+          -webkit-user-select: text !important;
+        }
+
+        /* শুধুমাত্র ড্র্যাগেবল সোয়াইপ হ্যান্ডেল এবং ফ্লোটিং আইকনে সিলেকশন বন্ধ রাখা হলো */
+        .swipe-interactive-zone, .swipe-arrow-handle, .glass-sound-btn, .floating-ai {
+          user-select: none !important;
+          -webkit-user-select: none !important;
+        }
         
         html, body {
           width: 100%;
@@ -800,49 +821,98 @@ export default function DentalPage() {
         .ai-avatar { font-size: 1.7rem; line-height: 1; display: inline-block; transition: transform 0.4s ease; }
         .status-dot-tiny { width: 11px; height: 11px; border-radius: 50%; background: #34c759; position: absolute; top: 4px; right: 4px; border: 2px solid #ffffff; box-shadow: 0 0 6px rgba(52, 199, 89, 0.8); }
         
+        /* চ্যাটবক্সের পজিশন, সাইজ ও হেডারের অ্যালাইনমেন্ট ফিক্স */
         .ai-chat-modal { 
           position: fixed !important; 
           bottom: 96px !important; 
           right: 24px !important; 
           top: auto !important; 
           left: auto !important; 
-          transform: none !important; 
-          width: 420px !important; 
+          transform: translateY(12px) scale(0.98) !important; 
+          width: 390px !important; 
           max-width: calc(100vw - 32px) !important; 
-          height: 580px !important; 
-          max-height: calc(100vh - 130px) !important; 
+          height: 520px !important; 
+          max-height: calc(100vh - 140px) !important; 
           z-index: 2147483646 !important; 
           display: flex !important; 
           flex-direction: column !important; 
           opacity: 0; 
           pointer-events: none; 
           transform-origin: bottom right; 
-          transition: all 0.3s ease; 
+          transition: opacity 0.28s cubic-bezier(0.25, 1, 0.5, 1), transform 0.28s cubic-bezier(0.25, 1, 0.5, 1); 
         }
         .ai-chat-modal.active { 
           opacity: 1 !important; 
           pointer-events: auto !important; 
-          transform: none !important; 
+          transform: translateY(0) scale(1) !important; 
         }
-        .ai-chat-window { background: #ffffff; width: 100%; height: 100%; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2); border: 1px solid var(--apple-border); overflow: hidden; }
+        .ai-chat-window { 
+          background: #ffffff; 
+          width: 100%; 
+          height: 100%; 
+          border-radius: 16px !important; 
+          display: flex; 
+          flex-direction: column; 
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18), 0 4px 16px rgba(0, 113, 227, 0.08); 
+          border: 1.5px solid rgba(0, 113, 227, 0.18); 
+          overflow: hidden; 
+        }
         
-        .ai-chat-header { padding: 0 !important; background: #ffffff !important; border-bottom: 1px solid var(--apple-border); display: flex; align-items: center; justify-content: space-between; height: 64px; padding-left: 20px; padding-right: 20px; }
-        .ai-header-left { display: flex; align-items: center; gap: 8px; color: var(--apple-dark); }
-        .ai-header-right { display: flex; align-items: center; }
+        .ai-chat-header { 
+          padding: 0 20px !important; 
+          background: #ffffff !important; 
+          border-bottom: 1px solid var(--apple-border); 
+          display: flex; 
+          align-items: center; 
+          justify-content: space-between; 
+          height: 60px; 
+          flex-shrink: 0;
+        }
+        .ai-header-left { 
+          display: flex; 
+          align-items: center; 
+          gap: 10px; 
+          color: var(--apple-dark); 
+          font-size: 0.96rem;
+        }
+        .ai-header-right { 
+          display: flex; 
+          align-items: center; 
+        }
+        .ai-header-right button {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #f1f5f9 !important;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.25rem !important;
+          line-height: 1;
+          color: #475569 !important;
+          cursor: pointer;
+          transition: background 0.2s ease, color 0.2s ease;
+        }
+        .ai-header-right button:hover {
+          background: #e2e8f0 !important;
+          color: #0f172a !important;
+        }
 
-        .ai-chat-body { flex: 1; padding: 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; background: var(--page-cream); }
-        .ai-msg { max-width: 85%; padding: 13px 18px; border-radius: 8px; font-size: 0.9rem; line-height: 1.55; }
-        .ai-bot { background: #ffffff; color: var(--apple-dark); align-self: flex-start; border: 1px solid var(--apple-border); }
-        .ai-user { background: var(--apple-blue); color: #ffffff; align-self: flex-end; }
-        .ai-chat-footer { padding: 16px 22px; border-top: 1px solid var(--apple-border); display: flex; gap: 12px; background: #ffffff; }
-        .ai-chat-input { flex: 1; border: 1px solid var(--apple-border); background: var(--card-pure-white); border-radius: 6px; padding: 12px 20px; font-size: 0.9rem; outline: none; }
-        .ai-send-btn { background: var(--apple-blue); color: #ffffff; border: none; padding: 10px 22px; border-radius: 6px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: transform 0.2s ease; }
-        .ai-send-btn:hover { transform: translateY(-2px); }
+        .ai-chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background: var(--page-cream); }
+        .ai-msg { max-width: 85%; padding: 13px 16px; border-radius: 12px; font-size: 0.9rem; line-height: 1.55; cursor: text; }
+        .ai-bot { background: #ffffff; color: var(--apple-dark); align-self: flex-start; border: 1px solid var(--apple-border); border-bottom-left-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .ai-user { background: var(--apple-blue); color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .ai-chat-footer { padding: 14px 18px; border-top: 1px solid var(--apple-border); display: flex; gap: 10px; background: #ffffff; align-items: center; }
+        .ai-chat-input { flex: 1; border: 1px solid var(--apple-border); background: var(--card-pure-white); border-radius: 10px; padding: 11px 16px; font-size: 0.9rem; outline: none; }
+        .ai-chat-input:focus { border-color: var(--apple-blue); }
+        .ai-send-btn { background: var(--apple-blue); color: #ffffff; border: none; padding: 11px 20px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: transform 0.2s ease; }
+        .ai-send-btn:hover { transform: translateY(-1px); }
         
-        .chat-calendar-card { align-self: flex-start; width: 90%; background: #ffffff; border: 1.5px solid #0071e3; border-radius: 8px; padding: 18px; box-shadow: 0 10px 28px rgba(0, 113, 227, 0.15); }
+        .chat-calendar-card { align-self: flex-start; width: 92%; background: #ffffff; border: 1.5px solid #0071e3; border-radius: 10px; padding: 16px; box-shadow: 0 10px 28px rgba(0, 113, 227, 0.15); }
         .chat-calendar-title { font-size: 0.9rem; font-weight: 700; color: #0071e3; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-        .chat-calendar-input { width: 100%; background: var(--card-pure-white); border: 1px solid var(--apple-border); padding: 11px 14px; border-radius: 6px; font-size: 0.88rem; color: var(--apple-dark); margin-bottom: 12px; outline: none; }
-        .chat-calendar-btn { width: 100%; background: #0071e3; color: #fff; border: none; padding: 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
+        .chat-calendar-input { width: 100%; background: var(--card-pure-white); border: 1px solid var(--apple-border); padding: 11px 14px; border-radius: 8px; font-size: 0.88rem; color: var(--apple-dark); margin-bottom: 10px; outline: none; }
+        .chat-calendar-btn { width: 100%; background: #0071e3; color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
         
         .extra-features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin: 40px 0; }
         .extra-feature-card { background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid var(--apple-border); border-radius: 10px; padding: 28px; box-shadow: 0 12px 35px rgba(0, 0, 0, 0.04); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }
@@ -1122,13 +1192,13 @@ export default function DentalPage() {
             bottom: calc(92px + var(--ios-safe-bottom)) !important;
             width: auto !important;
             max-width: none !important;
-            height: min(580px, 78vh) !important;
-            height: min(580px, calc(100dvh - 140px)) !important;
+            height: min(540px, 75vh) !important;
+            height: min(540px, calc(100dvh - 140px)) !important;
             max-height: none !important;
           }
           .ai-chat-window {
-            border-radius: 22px;
-            background: rgba(255, 255, 255, 0.82);
+            border-radius: 20px !important;
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: saturate(180%) blur(24px);
             -webkit-backdrop-filter: saturate(180%) blur(24px);
             border: 0.5px solid rgba(255, 255, 255, 0.65);
@@ -1136,12 +1206,12 @@ export default function DentalPage() {
           }
 
           .ai-chat-header {
-            padding: 0 14px 0 18px !important;
+            padding: 0 16px 0 18px !important;
             height: 60px;
             width: 100%;
             flex-shrink: 0;
             gap: 12px;
-            background: rgba(255, 255, 255, 0.7) !important;
+            background: rgba(255, 255, 255, 0.85) !important;
             backdrop-filter: saturate(180%) blur(20px);
             -webkit-backdrop-filter: saturate(180%) blur(20px);
             border-bottom: 0.5px solid var(--ios-hairline);
@@ -1150,28 +1220,16 @@ export default function DentalPage() {
           .ai-header-left > div { flex: 0 0 auto; box-shadow: 0 0 8px rgba(52, 199, 89, 0.7); }
           .ai-header-left strong { min-width: 0; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
           .ai-header-right { flex: 0 0 auto; }
-          .ai-header-right button {
-            width: 32px;
-            height: 32px;
-            padding: 0 !important;
-            border-radius: 50% !important;
-            background: rgba(120, 120, 128, 0.16) !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem !important;
-            line-height: 1;
-          }
 
           .ai-chat-body { padding: 18px 16px; background: rgba(245, 245, 247, 0.55); }
           .ai-msg { border-radius: 18px; }
-          .ai-bot { background: rgba(255, 255, 255, 0.92); border: 0.5px solid var(--ios-hairline); border-bottom-left-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
+          .ai-bot { background: rgba(255, 255, 255, 0.95); border: 0.5px solid var(--ios-hairline); border-bottom-left-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); }
           .ai-user { background: linear-gradient(180deg, #1a8cff 0%, #0071e3 100%); border-bottom-right-radius: 6px; }
-          .ai-chat-footer { padding: 12px 14px calc(12px + var(--ios-safe-bottom)) 14px; background: rgba(255, 255, 255, 0.78); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-top: 0.5px solid var(--ios-hairline); }
+          .ai-chat-footer { padding: 12px 14px calc(12px + var(--ios-safe-bottom)) 14px; background: rgba(255, 255, 255, 0.88); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-top: 0.5px solid var(--ios-hairline); }
           .ai-chat-input { font-size: 16px; border-radius: 999px; padding: 11px 18px; border: 0.5px solid var(--ios-hairline); min-width: 0; }
           .ai-send-btn { border-radius: 999px; flex: 0 0 auto; }
           .ai-send-btn:hover { transform: none; }
-          .chat-calendar-card { border-radius: 16px; width: 92%; background: rgba(255, 255, 255, 0.92); }
+          .chat-calendar-card { border-radius: 16px; width: 92%; background: rgba(255, 255, 255, 0.95); }
           .chat-calendar-input { font-size: 16px; border-radius: 10px; }
           .chat-calendar-btn { border-radius: 10px; }
         }
@@ -1231,14 +1289,6 @@ export default function DentalPage() {
         .half-form-drawer { border-radius: 14px 14px 0 0; }
         .map-floating-badge { border-radius: 10px; }
         .map-icon-btn { border-radius: 8px; }
-
-        .ai-chat-window { border-radius: 14px; }
-        .ai-msg { border-radius: 12px; }
-        .ai-bot { border-bottom-left-radius: 4px; }
-        .ai-user { border-bottom-right-radius: 4px; }
-        .ai-chat-input, .ai-send-btn { border-radius: 10px; }
-        .chat-calendar-card { border-radius: 10px; }
-        .chat-calendar-input, .chat-calendar-btn { border-radius: 8px; }
 
         .form-input,
         .consult-card .form-input {
@@ -1595,25 +1645,29 @@ export default function DentalPage() {
         <span className="status-dot-tiny"></span>
       </div>
 
-      <div className={`ai-chat-modal ${isChatOpen ? 'active' : ''}`}>
+      <div className={`ai-chat-modal ${isChatOpen ? 'active' : ''}`} style={{ userSelect: 'text', WebkitUserSelect: 'text' }}>
         <div className="ai-chat-window">
           <div className="ai-chat-header">
             <div className="ai-header-left">
-              <div style={{width:'9px', height:'9px', borderRadius:'50%', background:'#34c759'}}></div>
+              <div style={{width:'9px', height:'9px', borderRadius:'50%', background:'#34c759', boxShadow:'0 0 8px rgba(52, 199, 89, 0.8)'}}></div>
               <strong>SmileWay AI Assistant</strong>
             </div>
             <div className="ai-header-right">
-              <button onClick={() => setIsChatOpen(false)} style={{background:'none', border:'none', fontSize:'1.5rem', cursor:'pointer', color:'var(--apple-dark)'}}>×</button>
+              <button onClick={() => setIsChatOpen(false)} aria-label="Close Chat">×</button>
             </div>
           </div>
-          <div className="ai-chat-body" ref={chatBodyRef}>
+          <div className="ai-chat-body" ref={chatBodyRef} style={{ userSelect: 'text', WebkitUserSelect: 'text' }}>
             {chatMessages.map((msg, idx) => (
-              <div key={idx} className={`ai-msg ${msg.sender === 'bot' ? 'ai-bot' : 'ai-user'}`}>
+              <div 
+                key={idx} 
+                className={`ai-msg ${msg.sender === 'bot' ? 'ai-bot' : 'ai-user'}`}
+                style={{ userSelect: 'text', WebkitUserSelect: 'text', cursor: 'text' }}
+              >
                 {msg.text}
               </div>
             ))}
             
-            {/* ডায়নামিক বুকিং উইজেট (শর্ত সাপেক্ষে আসবে এবং বুকিং হয়ে গেলে গায়েব হয়ে যাবে) */}
+            {/* ডায়নামিক বুকিং উইজেট (শর্ত সাপেক্ষে আসবে এবং বুকিং হয়ে গেলে গায়েব হয়ে যাবে) */}
             {showCalendarWidget && !isChatSlotConfirmed && (
               <div className="chat-calendar-card">
                 <div className="chat-calendar-title">📅 Reserve Priority Consultation Slot</div>
@@ -1625,7 +1679,7 @@ export default function DentalPage() {
               </div>
             )}
 
-            {/* সফল বুকিংয়ের পর চ্যাটের নিচে পার্মানেন্ট ব্যাজ */}
+            {/* সফল বুকিংয়ের পর চ্যাটের নিচে পার্মানেন্ট ব্যাজ */}
             {isChatSlotConfirmed && (
               <div style={{ alignSelf: 'flex-start', background: '#f2faf4', border: '1px solid #d1edd8', borderRadius: '8px', padding: '10px 14px', fontSize: '0.85rem', fontWeight: 700, color: '#248a3d', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>✓ VIP Slot Confirmed!</span>
